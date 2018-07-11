@@ -1,0 +1,269 @@
+#!/bin/bash
+
+##
+## i-doit virtual appliance
+## Prepare OS
+##
+
+##
+## Copyright (C) 2018 synetics GmbH, <https://i-doit.com/>
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Affero General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+## GNU Affero General Public License for more details.
+##
+## You should have received a copy of the GNU Affero General Public License
+## along with this program. If not, see <http://www.gnu.org/licenses/>.
+##
+
+set -euo pipefail
+IFS=$'\n\t'
+
+##
+## Configuration
+##
+
+USER="idoit"
+HOSTNAME="idoitappliance"
+
+##--------------------------------------------------------------------------------------------------
+
+function execute {
+    log "Prepare operating system"
+
+    export DEBIAN_FRONTEND="noninteractive"
+
+    changeHostname
+    installGuestAdditions
+    installDebianPackages
+    installFiles
+    prepareSudo
+    prepareUser "$USER" "/home/${USER}"
+    autostartMenu
+    grantAccess
+    prepareUser "root" "/root"
+    installIdoit
+    ## TODO phive's key handling is too fragile… Expect timeouts:
+    #installIdoitCLI
+    zeroDisk
+    cleanUp
+
+    #   vhost /appliance with basic auth and:
+    #       phpinfo.php
+    #       backups
+
+    #   add tls vhost, but leave it disabled
+}
+
+function changeHostname {
+    log "Change hostname"
+
+    echo "$HOSTNAME" > /etc/hostname
+
+    {
+        echo -e "127.0.0.1\\t$HOSTNAME"
+        echo -e "::1\\t\\t$HOSTNAME"
+    } >> /etc/hosts
+}
+
+function installGuestAdditions {
+    local iso="/root/VBoxGuestAdditions.iso"
+
+    test -f "$iso" || return
+
+    log "Install VirtualBox guest additions"
+
+    mount -t iso9660 -o loop "$iso" /mnt 2> /dev/null || \
+        abort "Unable to mount ISO file"
+    /mnt/VBoxLinuxAdditions.run || \
+        abort "Unable to install guest additions"
+    umount /mnt || \
+        abort "Unable to unmount guest additions"
+    rm "$iso" || \
+        abort "Unable to remove guest additions"
+}
+
+function installDebianPackages {
+    log "Keep your Debian packages up-to-date"
+
+    apt-get -qq --yes update || \
+        abort "Unable to update Debian package repositories"
+    apt-get -qq --yes full-upgrade || \
+        abort "Unable to perform update of Debian packages"
+    apt-get -qq --yes clean || \
+        abort "Unable to cleanup Debian packages"
+    apt-get -qq --yes autoremove || \
+        abort "Unable to remove unnecessary Debian packages"
+
+    log "Install required Debian packages"
+
+    apt-get -qq --yes install \
+        rsync sudo htop atop git build-essential mycli vim nano tmux \
+        zsh procinfo pwgen tree unzip moreutils dirmngr dialog ntp \
+        nullmailer unattended-upgrades apt-listchanges || \
+        abort "Unable to install required Debian packages"
+}
+
+function installFiles {
+    local srcDir="/tmp"
+
+    log "Install files"
+
+    chmod +x "${srcDir}"/appliance-*
+    mv "${srcDir}"/appliance-* "/usr/local/bin/"
+    chown root:root -R /usr/local/bin
+    chmod 755 /usr/local/bin/*
+
+    cp "${srcDir}/bash_aliases" "/root/.bash_aliases"
+    cp "${srcDir}/bashrc" "/root/.bashrc"
+    chown root:root -R /root/
+
+    mv "${srcDir}/bash_aliases" "/home/${USER}/.bash_aliases"
+    mv "${srcDir}/bashrc" "/home/${USER}/.bashrc"
+    chown "$USER":"$USER" -R "/home/${USER}/"
+
+    chmod +x "${srcDir}"/network/if-up.d/*
+    mv "${srcDir}"/network/if-up.d/* "/etc/network/if-up.d/"
+
+    mv "${srcDir}/appliance_version" "/etc/"
+    chown root:root /etc/appliance_version
+    mv "${srcDir}/issue-standard" "/etc/"
+    chown root:root /etc/issue-standard
+}
+
+function installIdoit {
+    log "Install i-doit"
+
+    git clone https://github.com/bheisig/i-doit-scripts.git /tmp/i-doit-scripts || \
+        abort "Unable to clone repository"
+    cd /tmp/i-doit-scripts/ || \
+        abort "Unable to change directory"
+    make install || \
+        abort "Unable to install i-doit scripts"
+
+    yes "" | idoit-install
+
+    ## TODO Problem with failed pipe (exit code 141):
+    if [[ "$?" -ge 1 && "$?" -le 128 ]]; then
+        abort "Unable to install i-doit"
+    fi
+}
+
+function installIdoitCLI {
+    log "Install phive"
+
+    wget --quiet -O phive.phar https://phar.io/releases/phive.phar || \
+        abort "Unable to download phive"
+    wget --quiet -O phive.phar.asc https://phar.io/releases/phive.phar.asc || \
+        abort "Unable to download signature"
+    gpg --keyserver hkps.pool.sks-keyservers.net --recv-keys 0x9D8A98B29B2D5D79 || \
+        abort "Unable to download public key"
+    gpg --verify phive.phar.asc phive.phar || \
+        abort "Unable to verify phive"
+    chmod +x phive.phar || \
+        abort "Unable to modify file"
+    mv phive.phar /usr/bin/phive || \
+        abort "Unable to move file"
+
+    log "Install idoitcli"
+
+    yes "y" | phive install --global bheisig/i-doit-cli
+
+    ## TODO Problem with failed pipe (exit code 141):
+    if [[ "$?" -ge 1 && "$?" -le 128 ]]; then
+        abort "nable to install via phive"
+    fi
+}
+
+function prepareUser {
+    local user="$1"
+    local group="$user"
+    local home="$2"
+
+    log "Prepare user $user"
+
+    mkdir -m 700 "${home}/.ssh" || \
+        abort "Unable to create directory"
+    touch "${home}/.ssh/config" || \
+        abort "Unable to touch file"
+    chmod 600 "${home}/.ssh/config" || \
+        abort "Unable to change modifier"
+    touch "${home}/.ssh/authorized_keys" || \
+        abort "Unable to touch file"
+    chmod 600 "${home}/.ssh/authorized_keys" || \
+        abort "Unable to change modifier"
+    chown "${user}":"${group}" -R "${home}/.ssh" || \
+        abort "Unable to change ownership"
+}
+
+function prepareSudo {
+    local file="/etc/sudoers.d/i-doit"
+
+    cat << EOF > "$file" || \
+        abort "Unable to edit file ${file}"
+Defaults        env_keep += "http_proxy https_proxy"
+%sudo ALL=(ALL) NOPASSWD: ALL
+EOF
+}
+
+function grantAccess {
+    log "Grant user access to logs"
+    usermod -aG systemd-journal "$USER" || \
+        abort "Unable to add user $USER to group systemd-journal"
+}
+
+function autostartMenu {
+    echo "test -x \"\$(command -v appliance-menu)\" && sudo appliance-menu" \
+        >> "/home/${USER}"/.bashrc || \
+        abort "Unable to add appliance menu to /home/${USER}/.bashrc"
+}
+
+function zeroDisk {
+    log "Zero disk"
+
+    cat /dev/zero > zero.fill 2> /dev/null
+    sync
+    sleep 1
+    sync
+    rm -f zero.fill
+    sync
+    sleep 5
+}
+
+function cleanUp {
+    log "Clean up"
+
+    appliance-cleanup || \
+        abort "Unable to clean up"
+}
+
+function setup {
+    test "$(whoami)" = "root" || abort "Only user 'root' may execute this script"
+}
+
+function log {
+    echo -e "$1"
+}
+
+function finish {
+    log "Done. Have fun :-)"
+    exit 0
+}
+
+function abort {
+    echo -e "$1" 1>&2
+    echo "Operation failed. Please check what is wrong and try again." 1>&2
+    exit 1
+}
+
+##--------------------------------------------------------------------------------------------------
+
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
+    setup && execute && finish
+fi

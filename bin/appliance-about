@@ -1,0 +1,122 @@
+#!/bin/bash
+
+##
+## About i-doit virtual appliance
+##
+
+##
+## Copyright (C) 2018 synetics GmbH, <https://i-doit.com/>
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Affero General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+## GNU Affero General Public License for more details.
+##
+## You should have received a copy of the GNU Affero General Public License
+## along with this program. If not, see <http://www.gnu.org/licenses/>.
+##
+
+set -euo pipefail
+IFS=$'\n\t'
+
+##
+## Configuration
+##
+
+CONFIGURATION_FILE="/etc/i-doit/i-doit.sh"
+
+##--------------------------------------------------------------------------------------------------
+
+function execute {
+    applianceVersion="$(head -1 /etc/appliance_version)"
+    idoitVersion="$(test -f "$INSTANCE_PATH"/src/classes/modules/pro/init.php && echo "pro" || echo "open")"
+    idoitRevision="$(head -1 "$INSTANCE_PATH"/REVISION)"
+    ipAddress="$(ip route get 1 | awk '{print $NF;exit}')"
+    hostname="$(head -1 /etc/hostname)"
+    debianVersion="$(head -1 /etc/debian_version)"
+    kernelVersion="$(uname -r)"
+    architecture="$(uname -m)"
+    date="$(date)"
+    uptime="$(uptime --pretty)"
+    spaceSize="$(df -h / --output=size | tail -1 | tr -d "[:space:]")"
+    spaceUsed="$(df -h / --output=used | tail -1 | tr -d "[:space:]")"
+    spaceUsedInPerCent="$(df -h / --output=pcent | tail -1 | tr -d "[:space:]")"
+    cores="$(nproc)"
+    totalRAM="$(vmstat --stats --unit m | grep -i "total memory" | awk '{print $1}')"
+    usedRAM="$(vmstat --stats --unit m | grep -i "used memory" | awk '{print $1}')"
+    loggedInUsers="$(who)"
+
+    cat << EOF
+i-doit virtual appliance
+
+Virtual appliance
+-----------------
+Version:        $applianceVersion
+License:        AGPLv3+
+Website:        https://github.com/bheisig/i-doit-appliance
+Issues:         https://github.com/bheisig/i-doit-appliance/issues
+
+i-doit
+------
+Version:        $idoitVersion
+Revision:       $idoitRevision
+Web GUI:        http://${ipAddress}/
+Admin Center:   http://${ipAddress}/admin/
+Path:           $INSTANCE_PATH
+
+Operating system
+----------------
+Hostname:       $hostname
+IP:             $ipAddress
+OS:             Debian GNU/Linux $debianVersion
+Kernel:         $kernelVersion
+Architecture:   $architecture
+Date:           $date
+Uptime:         $uptime
+Used space:     $spaceUsed of $spaceSize (${spaceUsedInPerCent})
+Used memory:    ${usedRAM}M of ${totalRAM}M
+CPU cores:      $cores
+Logged-in users:
+$loggedInUsers
+
+Need professional support? https://help.i-doit.com/
+
+And don't forget to document all the things :) #cmdblove
+
+Copyright (C) 2018 synetics GmbH, https://i-doit.com/
+EOF
+}
+
+function setup {
+    test -f "$CONFIGURATION_FILE" || abort "Missing configuration file '${CONFIGURATION_FILE}'"
+
+    # shellcheck source=/dev/null
+    source "$CONFIGURATION_FILE" || abort "Unable to include configuration file"
+
+    test -d "$INSTANCE_PATH" || abort "No i-doit instance found under '${INSTANCE_PATH}'"
+}
+
+function log {
+    echo -e "$1"
+}
+
+function finish {
+    exit 0
+}
+
+function abort {
+    echo -e "$1" 1>&2
+    echo "Operation failed. Please check what is wrong and try again." 1>&2
+    exit 1
+}
+
+##--------------------------------------------------------------------------------------------------
+
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
+    setup && execute && finish
+fi

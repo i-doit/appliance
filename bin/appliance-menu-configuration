@@ -1,0 +1,193 @@
+#!/bin/bash
+
+##
+## i-doit virtual appliance
+## Dialog
+##
+
+##
+## Copyright (C) 2018 synetics GmbH, <https://i-doit.com/>
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Affero General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+## GNU Affero General Public License for more details.
+##
+## You should have received a copy of the GNU Affero General Public License
+## along with this program. If not, see <http://www.gnu.org/licenses/>.
+##
+
+## no -e for dialog buttons
+set -uo pipefail
+IFS=$'\n\t'
+
+##
+## Configuration
+##
+
+CONFIGURATION_FILE="/etc/i-doit/i-doit.sh"
+
+: "${DIALOG_OK=0}"
+: "${DIALOG_CANCEL=1}"
+: "${DIALOG_HELP=2}"
+: "${DIALOG_EXTRA=3}"
+: "${DIALOG_ITEM_HELP=4}"
+: "${DIALOG_ESC=255}"
+
+function execute {
+    local applianceVersion=""
+    local key=""
+    local status=0
+    local phpVersion=""
+
+    exec 3>&1
+
+    applianceVersion="$(cat /etc/appliance_version)"
+
+    key=$(dialog \
+        --title "Configuration" \
+        --backtitle "i-doit virtual appliance ${applianceVersion}" \
+        --ok-label "Enter" \
+        --extra-button \
+        --extra-label "Main menu" \
+        --cancel-button "Exit" \
+        --menu "Use arrows UP/DOWN\\nPress [Enter] to select" \
+        23 43 14 \
+        "H" "Change hostname" \
+        "I" "Configure network" \
+        "L" "Change locales and keyboard layout" \
+        "T" "Change timezone" \
+        "N" "Configure nullmailer (SMTP)" \
+        "1" "Configure PHP" \
+        "A" "Configure Apache Web server" \
+        "M" "Configure MariaDB" \
+        "P" "Change passwords" \
+        "C" "Edit cron jobs" \
+        "S" "Edit HTTP/HTTPS proxy settings" \
+        2>&1 1>&3
+    );
+
+    status="$?"
+
+    exec 3>&-
+
+    case "$status" in
+        "$DIALOG_OK")
+            case "$key" in
+                "H")
+                    editor /etc/hostname || \
+                        abort "Unable to edit hostname"
+                    ;;
+                "I")
+                    appliance-menu-network || \
+                        abort "Unable to configure network"
+                    ;;
+                "N")
+                    dpkg-reconfigure nullmailer || \
+                        abort "Unable to configure nullmailer"
+                    ;;
+                "L")
+                    dpkg-reconfigure locales || \
+                        abort "Unable to change keyboard layout"
+                    dpkg-reconfigure keyboard-configuration || \
+                        abort "Unable to change keyboard layout"
+                    systemctl restart keyboard-setup.service || \
+                        abort "Unable to restart keyboard setup"
+                    ;;
+                "T")
+                    dpkg-reconfigure tzdata || \
+                        abort "Unable to change timezone"
+                    ;;
+                "A")
+                    editor /etc/apache2/sites-available/i-doit.conf || \
+                        abort "Unable to configure Apache Web server"
+                    systemctl reload apache2.service || \
+                        abort "Unable to restart Apache Web server"
+                    ;;
+                "1")
+                    phpVersion="$(php --version | head -n1 -c7 | tail -c3)"
+                    editor /etc/php/"${phpVersion}"/mods-available/i-doit.ini || \
+                        abort "Unable to configure PHP"
+                    systemctl reload apache2.service || \
+                        abort "Unable to restart Apache Web server"
+                    ;;
+                "M")
+                    mysql \
+                        -u"$MARIADB_HOSTNAME" -uroot -p \
+                        -e"SET GLOBAL innodb_fast_shutdown = 0" || \
+                        abort "Unable to prepare MariaDB for shutdown"
+                    systemctl stop mysql.service || \
+                        abort "Unable to stop MariaDB"
+                    mv /var/lib/mysql/ib_logfile[01] /tmp || \
+                        abort "Unable to move MariaDB files"
+                    editor /etc/mysql/mariadb.conf.d/99-i-doit.cnf || \
+                        abort "Unable to configure MariaDB"
+                    systemctl start mysql.service || \
+                        abort "Unable to start MariaDB"
+                    ;;
+                "P")
+                    idoit-pwd || \
+                        abort "Exiting"
+                    ;;
+                "C")
+                    editor /etc/cron.d/i-doit || \
+                        abort "Unable to configure cron jobs"
+                    ;;
+                "S")
+                    appliance-menu-proxy
+                    # shellcheck source=/dev/null
+                    source /etc/profile.d/proxy.sh
+                    ;;
+                *)
+                    abort "Unknown choice"
+            esac
+            ;;
+        "$DIALOG_EXTRA")
+            appliance-menu
+            exit 0
+            ;;
+        "$DIALOG_CANCEL")
+            exit 0
+            ;;
+        "$DIALOG_ESC")
+            exit 0
+            ;;
+        *)
+            abort "Unknown action"
+            ;;
+    esac
+
+    execute
+}
+
+function setup {
+    test "$(whoami)" = "root" || \
+        abort "Only user 'root' may execute this script"
+
+    test -f "$CONFIGURATION_FILE" || \
+        abort "Missing configuration file '${CONFIGURATION_FILE}'"
+
+    # shellcheck source=/dev/null
+    source "$CONFIGURATION_FILE" || \
+        abort "Unable to include configuration file"
+}
+
+function log {
+    echo -e "$1"
+}
+
+function abort {
+    echo -e "$1" 1>&2
+    exit 1
+}
+
+##--------------------------------------------------------------------------------------------------
+
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
+    setup && execute
+fi

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+## Prettyfied commands:
+alias ll='ls -lha'
+alias df='df -h'
+
+## Install updates:
+alias au='sudo apt update && sudo apt upgrade && sudo apt-get autoremove && sudo apt-get clean'
+
+## Watch syslog:
+alias j='journalctl -fn100'
+
+## Act as Apache Web server:
+alias www='sudo -u www-data'
+
+## Forgot sudo?
+alias yolo='sudo $(history -p \!\!)'

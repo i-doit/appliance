@@ -1,0 +1,131 @@
+{
+    "variables": {
+        "hostname": "idoitappliance",
+        "ssh_username": "idoit",
+        "ssh_password": "idoit",
+        "debian_version": "9.4.0",
+        "vm_name": "i-doit-virtual-appliance-debian-9-amd64"
+    },
+    "builders": [
+        {
+            "type": "virtualbox-iso",
+            "boot_command": [
+                "<esc><wait>",
+                "install <wait>",
+                "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed_stretch.cfg <wait>",
+                "debian-installer=en_US <wait>",
+                "auto <wait>",
+                "locale=en_US <wait>",
+                "kbd-chooser/method=us <wait>",
+                "keyboard-configuration/xkb-keymap=us <wait>",
+                "netcfg/get_hostname={{ .Name }} <wait>",
+                "netcfg/get_domain=example.com <wait>",
+                "fb=false <wait>",
+                "debconf/frontend=noninteractive <wait>",
+                "console-setup/ask_detect=false <wait>",
+                "console-keymaps-at/keymap=us <wait>",
+                "<enter><wait>"
+            ],
+            "boot_wait": "10s",
+            "disk_size": 10240,
+            "guest_os_type": "Debian_64",
+            "headless": true,
+            "http_directory": "packer/http",
+            "iso_checksum_type": "sha512",
+            "iso_checksum_url": "http://cdimage.debian.org/cdimage/release/{{user `debian_version`}}/amd64/iso-cd/SHA512SUMS",
+            "iso_url": "http://cdimage.debian.org/cdimage/release/{{user `debian_version`}}/amd64/iso-cd/debian-{{user `debian_version`}}-amd64-netinst.iso",
+            "ssh_username": "{{user `ssh_username`}}",
+            "ssh_password": "{{user `ssh_password`}}",
+            "ssh_port": 22,
+            "ssh_wait_timeout": "10000s",
+            "output_directory": "builds/{{user `vm_name`}}-virtualbox",
+            "shutdown_command": "echo '/sbin/shutdown -h -P now' > /tmp/shutdown.sh; echo '{{user `ssh_password`}}' | sudo -S sh '/tmp/shutdown.sh'",
+            "shutdown_timeout": "60s",
+            "guest_additions_path": "/root/VBoxGuestAdditions.iso",
+            "virtualbox_version_file": ".vbox_version",
+            "vm_name": "{{user `vm_name`}}-virtualbox",
+            "format": "ovf",
+            "vboxmanage": [
+                [
+                    "modifyvm",
+                    "{{.Name}}",
+                    "--memory",
+                    "4096"
+                ],
+                [
+                    "modifyvm",
+                    "{{.Name}}",
+                    "--cpus",
+                    "2"
+                ]
+            ]
+        },
+        {
+            "type": "vmware-iso",
+            "boot_command": [
+                "<esc><wait>",
+                "install <wait>",
+                "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed_stretch.cfg <wait>",
+                "debian-installer=en_US <wait>",
+                "auto <wait>",
+                "locale=en_US <wait>",
+                "kbd-chooser/method=us <wait>",
+                "keyboard-configuration/xkb-keymap=us <wait>",
+                "netcfg/get_hostname={{ .Name }} <wait>",
+                "netcfg/get_domain=example.com <wait>",
+                "fb=false <wait>",
+                "debconf/frontend=noninteractive <wait>",
+                "console-setup/ask_detect=false <wait>",
+                "console-keymaps-at/keymap=us <wait>",
+                "<enter><wait>"
+            ],
+            "boot_wait": "10s",
+            "disk_type_id": 0,
+            "disk_size": 10240,
+            "guest_os_type": "debian8-64",
+            "headless": true,
+            "http_directory": "packer/http",
+            "iso_checksum_type": "sha512",
+            "iso_checksum_url": "http://cdimage.debian.org/cdimage/release/{{user `debian_version`}}/amd64/iso-cd/SHA512SUMS",
+            "iso_url": "http://cdimage.debian.org/cdimage/release/{{user `debian_version`}}/amd64/iso-cd/debian-{{user `debian_version`}}-amd64-netinst.iso",
+            "output_directory": "builds/{{user `vm_name`}}-vmware",
+            "shutdown_command": "echo '/sbin/shutdown -h -P now' > /tmp/shutdown.sh; echo '{{user `ssh_password`}}' | sudo -S sh '/tmp/shutdown.sh'",
+            "shutdown_timeout": "60s",
+            "ssh_password": "{{user `ssh_password`}}",
+            "ssh_port": 22,
+            "ssh_username": "{{user `ssh_username`}}",
+            "ssh_wait_timeout": "10000s",
+            "tools_upload_flavor": "linux",
+            "vm_name": "{{user `vm_name`}}-vmware",
+            "version": "9",
+            "vmx_data": {
+                "cpuid.coresPerSocket": "1",
+                "ethernet0.pciSlotNumber": "32",
+                "memsize": "4096",
+                "numvcpus": "2"
+            }
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "file",
+            "source": "./bin/",
+            "destination": "/tmp"
+        },
+        {
+            "type": "file",
+            "source": "./etc/",
+            "destination": "/tmp"
+        },
+        {
+            "type": "file",
+            "source": "./dotfiles/",
+            "destination": "/tmp"
+        },
+        {
+            "type": "shell",
+            "execute_command": "echo '{{user `ssh_password`}}' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
+            "script": "./packer/prepare-os"
+        }
+    ]
+}

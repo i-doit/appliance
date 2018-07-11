@@ -1,0 +1,160 @@
+#!/bin/bash
+
+##
+## i-doit virtual appliance
+## Dialog
+##
+
+##
+## Copyright (C) 2018 synetics GmbH, <https://i-doit.com/>
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Affero General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+## GNU Affero General Public License for more details.
+##
+## You should have received a copy of the GNU Affero General Public License
+## along with this program. If not, see <http://www.gnu.org/licenses/>.
+##
+
+## no -e for dialog buttons
+set -uo pipefail
+IFS=$'\n\t'
+
+##
+## Configuration
+##
+
+CONFIGURATION_FILE="/etc/i-doit/i-doit.sh"
+
+: "${DIALOG_OK=0}"
+: "${DIALOG_CANCEL=1}"
+: "${DIALOG_HELP=2}"
+: "${DIALOG_EXTRA=3}"
+: "${DIALOG_ITEM_HELP=4}"
+: "${DIALOG_ESC=255}"
+
+function execute {
+    local applianceVersion=""
+    local key=""
+    local status=0
+
+    exec 3>&1
+
+    applianceVersion="$(cat /etc/appliance_version)"
+
+    key=$(dialog \
+        --title "Tools and services" \
+        --backtitle "i-doit virtual appliance ${applianceVersion}" \
+        --ok-label "Enter" \
+        --extra-button \
+        --extra-label "Main menu" \
+        --cancel-button "Exit" \
+        --menu "Use arrows UP/DOWN\\nPress [Enter] to select" \
+        23 43 14 \
+        "U" "Install distribution updates" \
+        "M" "Restart MariaDB" \
+        "C" "Restart memcached" \
+        "A" "Restart Apache Web server" \
+        "D" "Open MariaDB console (mycli)" \
+        "R" "Restart system" \
+        "P" "Power off system" \
+        2>&1 1>&3
+    );
+
+    status="$?"
+
+    exec 3>&-
+
+    case "$status" in
+        "$DIALOG_OK")
+            case "$key" in
+                "U")
+                    apt --yes update || \
+                        abort "Update failed"
+                    apt --yes full-upgrade || \
+                        abort "Upgrade failed"
+                    apt --yes autoremove || \
+                        abort "Autoremove failed"
+                    apt --yes clean || \
+                        abort "Clean failed"
+                    ;;
+                "M")
+                    systemctl restart mysql.service || \
+                        abort "Unable to restart MariaDB"
+                    ;;
+                "C")
+                    systemctl restart memcached.service || \
+                        abort "Unable to restart memcached"
+                    ;;
+                "A")
+                    systemctl reload apache2.service || \
+                        abort "Unable to restart Apache Web server"
+                    ;;
+                "D")
+                    mycli \
+                        -u"$MARIADB_HOSTNAME" \
+                        -u"$MARIADB_USERNAME" -p"$MARIADB_PASSWORD" || \
+                        abort "Exiting"
+                    ;;
+                "R")
+                    log "See you"
+                    systemctl reboot || \
+                        abort "Unable to reboot"
+                    ;;
+                "P")
+                    log "Bye"
+                    systemctl poweroff || \
+                        abort "Unable to shutdown"
+                    ;;
+                *)
+                    abort "Unknown choice"
+            esac
+            ;;
+        "$DIALOG_EXTRA")
+            appliance-menu
+            exit 0
+            ;;
+        "$DIALOG_CANCEL")
+            exit 0
+            ;;
+        "$DIALOG_ESC")
+            exit 0
+            ;;
+        *)
+            abort "Unknown action"
+            ;;
+    esac
+
+    execute
+}
+
+function setup {
+    test "$(whoami)" = "root" || \
+        abort "Only user 'root' may execute this script"
+
+    test -f "$CONFIGURATION_FILE" || abort "Missing configuration file '${CONFIGURATION_FILE}'"
+
+    # shellcheck source=/dev/null
+    source "$CONFIGURATION_FILE" || abort "Unable to include configuration file"
+}
+
+function log {
+    echo -e "$1"
+}
+
+function abort {
+    echo -e "$1" 1>&2
+    exit 1
+}
+
+##--------------------------------------------------------------------------------------------------
+
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
+    setup && execute
+fi

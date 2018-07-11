@@ -1,0 +1,144 @@
+#!/bin/bash
+
+##
+## Clean up i-doit virtual appliance
+##
+
+##
+## Copyright (C) 2018 synetics GmbH, <https://i-doit.com/>
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Affero General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+## GNU Affero General Public License for more details.
+##
+## You should have received a copy of the GNU Affero General Public License
+## along with this program. If not, see <http://www.gnu.org/licenses/>.
+##
+
+set -euo pipefail
+IFS=$'\n\t'
+
+##
+## Configuration
+##
+
+USER="root"
+CONFIGURATION_FILE="/etc/i-doit/i-doit.sh"
+
+##--------------------------------------------------------------------------------------------------
+
+function execute {
+    log "Clean up i-doit virtual appliance"
+
+    log "Do not log what will happen next"
+    export HISTFILE=/dev/null
+
+    clearHome "/root"
+    clearHome "/home/${USER}"
+    clearIdoit
+    clearBackups
+    clearLogs
+    clearMails
+    clearAPT
+}
+
+function clearHome {
+    local path="$1"
+
+    log "Clean up home directory $path"
+
+    truncate -s 0 "$path"/.bash_history
+    rm -f "$path"/.vim* || \
+        abort "Unable to cleanup vim"
+    rm -f "$path"/.nano/* || \
+        abort "Unable to cleanup nano"
+    rm -rf "$path"/.cache/* || \
+        abort "Unable to cleanup cache"
+}
+
+function clearIdoit {
+    log "Clear i-doit instance path"
+
+    /bin/rm -rf "${INSTANCE_PATH}"/temp/* 2>/dev/null || \
+        abort "Failed to cleanup temp dir"
+    /bin/rm -rf "${INSTANCE_PATH}"/updates/versions/* 2>/dev/null || \
+        abort "Failed to cleanup update dir"
+    /bin/rm -f "${INSTANCE_PATH}"/idoit*.zip 2>/dev/null || \
+        abort "Failed to cleanup distribution packages"
+    /bin/rm -rf "${INSTANCE_PATH}"/imports/* 2>/dev/null || \
+        abort "Failed to cleanup import dir"
+    /bin/rm -rf "${INSTANCE_PATH}"/upload/* 2>/dev/null || \
+        abort "Failed to cleanup upload dir"
+    /bin/rm -rf "${INSTANCE_PATH}"/log/* 2>/dev/null || \
+        abort "Failed to cleanup log dir"
+}
+
+function clearBackups {
+    log "Clear i-doit backups"
+
+    /bin/rm -rf "${BACKUP_DIR:?}"/* 2>/dev/null || \
+        abort "Failed to cleanup backup dir"
+}
+
+function clearLogs {
+    log "Clean up log files"
+
+    find /var/log -type f -name '*.gz' -exec rm -f {} \; || \
+        abort "Failed to remove compressed log files"
+    find /var/log -type f -exec /bin/cp /dev/null {} \; || \
+        abort "Failed to remove log files"
+}
+
+function clearMails {
+    log "Clean up mails"
+
+    rm -rf /var/spool/nullmailer/queue/* || \
+        abort "Unable to cleanup nullmailer queue"
+}
+
+function clearAPT {
+    log "Clean APT temp files"
+
+    apt-get clean || \
+        abort "Unable to cleanup apt temp files"
+}
+
+function setup {
+    test "$(whoami)" = "$USER" || abort "Only user '${USER}' may execute this script"
+
+    test -f "$CONFIGURATION_FILE" || abort "Missing configuration file '${CONFIGURATION_FILE}'"
+
+    # shellcheck source=/dev/null
+    source "$CONFIGURATION_FILE" || abort "Unable to include configuration file"
+
+    test -d "$INSTANCE_PATH" || abort "No i-doit instance found under '${INSTANCE_PATH}'"
+
+    test -d "$BACKUP_DIR" || abort "No backups found under '${BACKUP_DIR}'"
+}
+
+function log {
+    echo -e "$1"
+}
+
+function finish {
+    log "Done. Have fun :-)"
+    exit 0
+}
+
+function abort {
+    echo -e "$1" 1>&2
+    echo "Operation failed. Please check what is wrong and try again." 1>&2
+    exit 1
+}
+
+##--------------------------------------------------------------------------------------------------
+
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
+    setup && execute && finish
+fi

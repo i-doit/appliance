@@ -1,0 +1,33 @@
+#!/bin/bash
+
+##
+## i-doit virtual appliance
+## Dialog
+##
+
+##
+## Copyright (C) 2018 synetics GmbH, <https://i-doit.com/>
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Affero General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+## GNU Affero General Public License for more details.
+##
+## You should have received a copy of the GNU Affero General Public License
+## along with this program. If not, see <http://www.gnu.org/licenses/>.
+##
+
+set -euo pipefail
+IFS=$'\n\t'
+
+cmd=(dialog --nocancel --keep-tite --inputbox \
+    "Please enter your proxy configuration in the format:\\n\\nhttp[s]://[USERNAME/PASSWORD@]ADRESS[:PORT]\\n\\nExamples:\\nhttp://user:password@proxy.idoit.int:8080\\nhttp://1.2.3.4:80" 14 72)
+proxy=$("${cmd[@]}" 2>&1 >/dev/tty)
+echo export http_proxy=\""$proxy"\" > /etc/profile.d/proxy.sh
+echo export https_proxy=\""$proxy"\" >> /etc/profile.d/proxy.sh
+chmod 755 /etc/profile.d/proxy.sh
