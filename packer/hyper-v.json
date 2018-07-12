@@ -1,0 +1,72 @@
+{
+    "variables": {
+        "hostname": "idoitappliance",
+        "ssh_username": "idoit",
+        "ssh_password": "idoit",
+        "debian_version": "9.4.0",
+        "vm_name": "i-doit-virtual-appliance-debian-9-amd64"
+    },
+    "builders": [
+        {
+            "type": "hyperv-iso",
+            "boot_command": [
+                "<esc><wait>",
+                "install <wait>",
+                "preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed_stretch_hyper-v.cfg <wait>",
+                "debian-installer=en_US <wait>",
+                "auto <wait>",
+                "locale=en_US <wait>",
+                "kbd-chooser/method=us <wait>",
+                "keyboard-configuration/xkb-keymap=us <wait>",
+                "netcfg/get_hostname={{ .Name }} <wait>",
+                "netcfg/get_domain=example.com <wait>",
+                "fb=false <wait>",
+                "debconf/frontend=noninteractive <wait>",
+                "console-setup/ask_detect=false <wait>",
+                "console-keymaps-at/keymap=us <wait>",
+                "<enter><wait>"
+            ],
+            "boot_wait": "10s",
+            "communicator": "ssh",
+            "cpu": 2,
+            "disk_size": 10240,
+            "generation": 1,
+            "headless": false,
+            "http_directory": "packer/http",
+            "iso_checksum_type": "sha512",
+            "iso_checksum_url": "http://cdimage.debian.org/cdimage/release/{{user `debian_version`}}/amd64/iso-cd/SHA512SUMS",
+            "iso_url": "http://cdimage.debian.org/cdimage/release/{{user `debian_version`}}/amd64/iso-cd/debian-{{user `debian_version`}}-amd64-netinst.iso",
+            "ram_size": 2048,
+            "ssh_username": "{{user `ssh_username`}}",
+            "ssh_password": "{{user `ssh_password`}}",
+            "ssh_port": 22,
+            "ssh_timeout" : "2h",
+            "output_directory": "builds/{{user `vm_name`}}-hyper-v",
+            "shutdown_command": "echo '/sbin/shutdown -h -P now' > /tmp/shutdown.sh; echo '{{user `ssh_password`}}' | sudo -S sh '/tmp/shutdown.sh'",
+            "shutdown_timeout": "60s",
+            "vm_name": "{{user `vm_name`}}-hyper-v"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "file",
+            "source": "./bin/",
+            "destination": "/tmp"
+        },
+        {
+            "type": "file",
+            "source": "./etc/",
+            "destination": "/tmp"
+        },
+        {
+            "type": "file",
+            "source": "./dotfiles/",
+            "destination": "/tmp"
+        },
+        {
+            "type": "shell",
+            "execute_command": "echo '{{user `ssh_password`}}' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
+            "script": "./packer/prepare-os"
+        }
+    ]
+}

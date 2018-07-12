@@ -73,7 +73,7 @@ function changeHostname {
 }
 
 function installGuestAdditions {
-    local iso="/root/VBoxGuestAdditions.iso"
+    local iso="/home/${USER}/VBoxGuestAdditions.iso"
 
     test -f "$iso" || return
 

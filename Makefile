@@ -8,7 +8,10 @@ all : build
 
 build :
 	mkdir -p $(BUILD_DIR:?)/
-	packer build packer/packer.json
+	test ! -d $(BUILD_DIR:?)/$(NAME_PREFIX)-virtualbox/
+	test ! -d $(BUILD_DIR:?)/$(NAME_PREFIX)-vmware/
+	packer build --only=virtualbox-iso packer/packer.json
+	packer build --only=vmware-iso packer/packer.json
 
 dist :
 	cp $(DIST_FILES) $(BUILD_DIR)/$(NAME_PREFIX)-virtualbox/

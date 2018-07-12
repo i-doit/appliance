@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 
 -   Use Debian GNU/Linux 9.4 "stretch" (stable)
+-   Build VM for Microsoft Hyper-V
 -   Build VM for Oracle VirtualBox
 -   Build VM for VMware ESXi/Workstation/Player
 -   Include [i-doit-scripts](https://github.com/bheisig/i-doit-scripts)

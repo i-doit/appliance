@@ -42,10 +42,14 @@ Notice, that any of your contributions merged into this repository will be [lice
 
 ##  Requirements
 
-Developers must meet at least these requirements:
+Developers and build environments must meet at least these requirements:
+
+*   [Packer](https://www.packer.io/)
+*   Virtualization support enabled for your hardware, especially your CPU
+
+These dependencies are suggested:
 
 *   [Git](https://git-scm.com/)
-*   [Packer](https://www.packer.io/)
 *   [ShellCheck](https://www.shellcheck.net/)
 *   make
 *   zip
@@ -53,10 +57,46 @@ Developers must meet at least these requirements:
 Depending on which OS you are and which virtualization platform you want to use the requirements may differ. This setup has been tested:
 
 *   Host system: Ubuntu GNU/Linux
+*   >= 8 GByte of free RAM
+*   >= 10 GByte of free space
+*   Desktop environment (VMware requires a GUI)
 *   VirtualBox
 *   [VMware Workstation Player 14](https://my.vmware.com/de/web/vmware/free#desktop_end_user_computing/vmware_workstation_player/14_0|PLAYER-1411|product_downloads)
 *   [VIX API libraries](https://www.vmware.com/support/developer/vix-api/)
 *   quemu-utils
+
+Hyper-V is only available on a Windows host. This Hyper-V setup has been tested:
+
+*   Host system: Microsoft Windows 10
+*   >= 4 GByte of free RAM
+*   >= 10 GByte of free space
+*   Hyper-V (of course)
+*   Your user needs to added to the "Hyper-V Administrators" group
+
+
+##  Build virtual appliances
+
+The virtual appliances for VirtualBox and VMware are built on a GNU/Linux host. The one for Hyper-V on a Windows host.
+
+
+### VirtualBox/VMware
+
+On a GNU/Linux host use your terminal. Change to the project directory and execute the needed make rule:
+
+~~~ {.bash}
+cd /path/to/i-doit-appliance
+make build
+~~~
+
+
+### Hyper-V
+
+On a Windows host open a command prompt with administrator rights. Change to the project directory and execute the bat file:
+
+~~~
+cd C:\path\to\i-doit-appliance
+./hyper-v.bat
+~~~
 
 
 ##  Make rules
@@ -83,6 +123,7 @@ This project comes with some useful make rules:
 ├── CHANGELOG.md
 ├── CODE_OF_CONDUCT.md
 ├── CONTRIBUTING.md
+├── hyper-v.bat                     # Build virtual appliance for Hyper-V
 ├── dist                            # Distribution files of virtual appliances
 │   └── *.zip
 ├── docs
@@ -104,10 +145,12 @@ This project comes with some useful make rules:
 ├── Makefile                        # Make rules
 ├── packer
 │   ├── http
+│   │   ├── preseed_stretch_hyper-v.cfg # Used for unattended OS installation on Hyper-V
 │   │   └── preseed_stretch.cfg     # Used for unattended OS installation
-│   ├── packer.json                 # Packer configuration file
+│   ├── hyper-v.json                # Packer configuration file for Hyper-V
+│   ├── packer.json                 # Packer configuration file for VirtualBox and VMware
 │   └── prepare-os                  # Automagically prepare OS
-├── packer_cache                    # Cache with pre-downloded ISO files
+├── packer_cache                    # Cache for pre-downloded ISO files
 │   └── *.iso
 └── README.md
 ~~~

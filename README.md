@@ -12,10 +12,11 @@ Pre-configured virtual machines (VM) for i-doit
 
 At the moment, these virtualization platforms are supported:
 
--   Oracle VirtualBox
+-   Microsoft Hyper-V incl. installed Linux Integration Services
+-   Oracle VirtualBox incl. installed Guest Additions
 -   VMware ESXi/Workstation/Player
 
-Next platform on this list will be Microsoft Hyper-V. If you're interested in other platforms, feel free to create an [issue](https://github.com/bheisig/i-doit-appliance/issues).
+If you're interested in other platforms, feel free to create an [issue](https://github.com/bheisig/i-doit-appliance/issues).
 
 
 ##  Features
@@ -45,6 +46,33 @@ Next platform on this list will be Microsoft Hyper-V. If you're interested in ot
 ##  Download
 
 Now you like to try out the virtual appliance for yourself? Currently, there is only [an older version available for i-doit pro](https://www.i-doit.com/en/trial-version/). We will publish pre-built releases as soon as possible.
+
+
+##  Getting started
+
+After downloading the zip file suitable for your virtualization environment extract it. It contains all files needed to import. The import process depends on you virtualization environment and is not part of this documentation.
+
+After importing start the virtual machine. While booting the VM tries to receive an IPv4 address via DHCP. The current IP address will be shown on the login screen of your VM. If everything works i-doit will be available within your network via HTTP. Type this URL into your Web browser:
+
+~~~
+http://<IP address>/
+~~~
+
+Login with username `admin` and password `admin`. One of the first things you see will be a warning that your i-doit is not licensed yet. Logout first then go to i-doit's Admin Center:
+
+~~~
+http://<IP address>/admin/
+~~~
+
+Login with username `admin` and password `admin`. Click on `Licenses` and import your license file provided by the i-doit team.
+
+System configuration is almost done. On every login via SSH an dialog menu opens which provides many, many tools to setup i-doit, the operating system and all services running on it. For example, **you should change all default passwords**:
+
+1.  Login via SSH with username `idoit` and password `idoit`
+2.  As the dialog menu opens go to `Configuration`, then `Change passwords`
+3.  Follow the steps
+
+Now go back to i-doit and start working on your CMDB. :-)
 
 
 ##  Contribute & support
