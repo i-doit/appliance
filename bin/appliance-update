@@ -1,0 +1,124 @@
+#!/bin/bash
+
+##
+## Update the i-doit virtual appliance
+##
+
+##
+## Copyright (C) 2018 synetics GmbH, <https://i-doit.com/>
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Affero General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+## GNU Affero General Public License for more details.
+##
+## You should have received a copy of the GNU Affero General Public License
+## along with this program. If not, see <http://www.gnu.org/licenses/>.
+##
+
+set -euo pipefail
+IFS=$'\n\t'
+
+##
+## Configuration
+##
+
+CONFIGURATION_FILE="/etc/i-doit/i-doit.sh"
+DATE="$(date +%Y-%m-%d_%H-%M-%S)"
+TMP_DIR="/tmp/idoit-appliance_${DATE}"
+
+##--------------------------------------------------------------------------------------------------
+
+function execute {
+    log "Update the i-doit virtual appliance"
+
+    updateDebianPackages
+    updateApllianceScripts
+    updateIdoitScripts
+
+    cleanUp
+}
+
+function updateDebianPackages {
+    log "Keep your Debian packages up-to-date"
+
+    apt-get -qq --yes update || \
+        abort "Unable to update Debian package repositories"
+    apt-get -qq --yes full-upgrade || \
+        abort "Unable to perform update of Debian packages"
+    apt-get -qq --yes clean || \
+        abort "Unable to cleanup Debian packages"
+    apt-get -qq --yes autoremove || \
+        abort "Unable to remove unnecessary Debian packages"
+}
+
+function updateApplianceScripts {
+    local dir="${TMP_DIR}/i-doit-appliance"
+
+    log "Update appliance scripts"
+
+    git clone --quiet https://github.com/bheisig/i-doit-appliance.git "$dir" || \
+        abort "Unable to clone repository"
+    install -m 775 "${dir}"/bin/* /usr/local/bin/ || \
+        abort "Unable to install scripts"
+    install -m 775 "${dir}/etc/network/if-up.d/create-issue-file" /etc/network/if-up.d/ || \
+        abort "Unable to install script"
+    install -m 664 "${dir}/etc/appliance_version" /etc/ || \
+        abort "Unable to install file"
+    install -m 664 "${dir}/etc/issue-standard" /etc/ || \
+        abort "Unable to install file"
+}
+
+function updateIdoitScripts {
+    local dir="${TMP_DIR}/i-doit-appliance"
+
+    log "Update i-doit scripts"
+
+    git clone --quiet https://github.com/bheisig/i-doit-scripts.git "$dir" || \
+        abort "Unable to clone repository"
+    install -m 775 "${dir}"/idoit* /usr/local/bin/ || \
+        abort "Unable to install scripts"
+}
+
+function cleanUp {
+    rm -r "${TMP_DIR:?}"/ || \
+        abort "Unable to remove temporary files"
+}
+
+function setup {
+    test -f "$CONFIGURATION_FILE" || \
+        abort "Missing configuration file '${CONFIGURATION_FILE}'"
+
+    # shellcheck source=/dev/null
+    source "$CONFIGURATION_FILE" || \
+        abort "Unable to include configuration file"
+
+    test -d "$INSTANCE_PATH" || \
+        abort "No i-doit instance found under '${INSTANCE_PATH}'"
+}
+
+function log {
+    echo -e "$1"
+}
+
+function finish {
+    log "Done. Have fun :-)"
+    exit 0
+}
+
+function abort {
+    echo -e "$1" 1>&2
+    echo "Operation failed. Please check what is wrong and try again." 1>&2
+    exit 1
+}
+
+##--------------------------------------------------------------------------------------------------
+
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
+    setup && execute && finish
+fi

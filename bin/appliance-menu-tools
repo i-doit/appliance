@@ -57,10 +57,11 @@ function execute {
         --cancel-button "Exit" \
         --menu "Use arrows UP/DOWN\\nPress [Enter] to select" \
         23 43 14 \
+        "A" "Update i-doit virtual appliance" \
         "U" "Install distribution updates" \
         "M" "Restart MariaDB" \
         "C" "Restart memcached" \
-        "A" "Restart Apache Web server" \
+        "W" "Restart Apache Web server" \
         "D" "Open MariaDB console (mycli)" \
         "R" "Restart system" \
         "P" "Power off system" \
@@ -74,6 +75,10 @@ function execute {
     case "$status" in
         "$DIALOG_OK")
             case "$key" in
+                "A")
+                    appliance-update || \
+                        abort "Unable to update appliance"
+                    ;;
                 "U")
                     apt --yes update || \
                         abort "Update failed"
@@ -92,7 +97,7 @@ function execute {
                     systemctl restart memcached.service || \
                         abort "Unable to restart memcached"
                     ;;
-                "A")
+                "W")
                     systemctl reload apache2.service || \
                         abort "Unable to restart Apache Web server"
                     ;;

@@ -7,11 +7,9 @@ DIST_FILES ?= CHANGELOG.md LICENSE README.md
 all : build
 
 build :
-	mkdir -p $(BUILD_DIR:?)/
 	test ! -d $(BUILD_DIR:?)/$(NAME_PREFIX)-virtualbox/
 	test ! -d $(BUILD_DIR:?)/$(NAME_PREFIX)-vmware/
-	packer build --only=virtualbox-iso packer/packer.json
-	packer build --only=vmware-iso packer/packer.json
+	packer build packer/packer.json
 
 dist :
 	cp $(DIST_FILES) $(BUILD_DIR)/$(NAME_PREFIX)-virtualbox/
@@ -36,6 +34,7 @@ shellcheck :
 	shellcheck bin/appliance-menu-network
 	shellcheck bin/appliance-menu-proxy
 	shellcheck bin/appliance-menu-tools
+	shellcheck bin/appliance-update
 	shellcheck etc/network/if-up.d/create-issue-files
 	shellcheck packer/prepare-os
 
