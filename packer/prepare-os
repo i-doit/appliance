@@ -115,26 +115,36 @@ function installFiles {
 
     log "Install files"
 
-    chmod +x "${srcDir}"/appliance-*
-    mv "${srcDir}"/appliance-* "/usr/local/bin/"
-    chown root:root -R /usr/local/bin
-    chmod 755 /usr/local/bin/*
+    install -m 775 "${srcDir}"/appliance-* "/usr/local/bin/" || \
+        abort "Unable to install scripts"
+    chown root:root -R /usr/local/bin || \
+        abort "Unable to change owner"
 
-    cp "${srcDir}/bash_aliases" "/root/.bash_aliases"
-    cp "${srcDir}/bashrc" "/root/.bashrc"
-    chown root:root -R /root/
+    install -m 664 "${srcDir}/bash_aliases" "/root/.bash_aliases" || \
+        abort "Unable to install file"
+    install -m 664 "${srcDir}/bashrc" "/root/.bashrc" || \
+        abort "Unable to install file"
+    chown root:root -R /root/ || \
+        abort "Unable to change owner"
 
-    mv "${srcDir}/bash_aliases" "/home/${USER}/.bash_aliases"
-    mv "${srcDir}/bashrc" "/home/${USER}/.bashrc"
-    chown "$USER":"$USER" -R "/home/${USER}/"
+    install -m 664 "${srcDir}/bash_aliases" "/home/${USER}/.bash_aliases" || \
+        abort "Unable to install file"
+    install -m 664 "${srcDir}/bashrc" "/home/${USER}/.bashrc" || \
+        abort "Unable to install file"
+    chown "$USER":"$USER" -R "/home/${USER}/" || \
+        abort "Unable to change owner"
 
-    chmod +x "${srcDir}"/network/if-up.d/*
-    mv "${srcDir}"/network/if-up.d/* "/etc/network/if-up.d/"
+    install -m 775 "${srcDir}"/network/if-up.d/* "/etc/network/if-up.d/" || \
+        abort "Unable to install script"
 
-    mv "${srcDir}/appliance_version" "/etc/"
-    chown root:root /etc/appliance_version
-    mv "${srcDir}/issue-standard" "/etc/"
-    chown root:root /etc/issue-standard
+    install -m 664 "${srcDir}/appliance_version" "/etc/" || \
+        abort "Unable to install file"
+    chown root:root /etc/appliance_version || \
+        abort "Unable to change owner"
+    install -m 664 "${srcDir}/issue-standard" "/etc/" || \
+        abort "Unable to install file"
+    chown root:root /etc/issue-standard || \
+        abort "Unable to change owner"
 }
 
 function installIdoit {
