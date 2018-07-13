@@ -7,15 +7,40 @@ DIST_FILES ?= CHANGELOG.md LICENSE README.md
 all : build
 
 build :
-	test ! -d $(BUILD_DIR:?)/$(NAME_PREFIX)-virtualbox/
-	test ! -d $(BUILD_DIR:?)/$(NAME_PREFIX)-vmware/
+	test ! -d $(BUILD_DIR)/$(NAME_PREFIX)-virtualbox/
+	test ! -d $(BUILD_DIR)/$(NAME_PREFIX)-vmware/
 	packer build packer/packer.json
 
-dist :
+build-virtualbox :
+	test ! -d $(BUILD_DIR)/$(NAME_PREFIX)-virtualbox/
+	packer build --only=virtualbox-iso packer/packer.json
+
+build-vmware :
+	test ! -d $(BUILD_DIR)/$(NAME_PREFIX)-vmware/
+	packer build --only=vmware-iso packer/packer.json
+
+dist : dist-virtualbox dist-vmware dist-hyper-v
+
+dist-virtualbox :
+	test -d $(BUILD_DIR)/$(NAME_PREFIX)-virtualbox/
 	cp $(DIST_FILES) $(BUILD_DIR)/$(NAME_PREFIX)-virtualbox/
 	cd $(BUILD_DIR)/ && zip -r -9 -v $(NAME_PREFIX)-virtualbox.zip $(NAME_PREFIX)-virtualbox/
 	mkdir -p $(DIST_DIR)/
-	mv $(BUILD_DIR)/*.zip $(DIST_DIR)/
+	mv $(BUILD_DIR)/$(NAME_PREFIX)-virtualbox.zip $(DIST_DIR)/
+
+dist-vmware :
+	test -d $(BUILD_DIR)/$(NAME_PREFIX)-vmware/
+	cp $(DIST_FILES) $(BUILD_DIR)/$(NAME_PREFIX)-vmware/
+	cd $(BUILD_DIR)/ && zip -r -9 -v $(NAME_PREFIX)-vmware.zip $(NAME_PREFIX)-vmware/
+	mkdir -p $(DIST_DIR)/
+	mv $(BUILD_DIR)/$(NAME_PREFIX)-vmware.zip $(DIST_DIR)/
+
+dist-hyper-v :
+	test -d $(BUILD_DIR)/$(NAME_PREFIX)-hyper-v/
+	cp $(DIST_FILES) $(BUILD_DIR)/$(NAME_PREFIX)-hyper-v/
+	cd $(BUILD_DIR)/ && zip -r -9 -v $(NAME_PREFIX)-hyper-v.zip $(NAME_PREFIX)-hyper-v/
+	mkdir -p $(DIST_DIR)/
+	mv $(BUILD_DIR)/$(NAME_PREFIX)-hyper-v.zip $(DIST_DIR)/
 
 clean :
 	test -n $(BUILD_DIR)
@@ -44,4 +69,5 @@ test :
 	packer validate packer/packer.json
 	vboxmanage --version
 	vmware-installer -t
+	ovftool --version
 	shellcheck --version

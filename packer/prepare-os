@@ -150,7 +150,7 @@ function installFiles {
 function installIdoit {
     log "Install i-doit"
 
-    git clone https://github.com/bheisig/i-doit-scripts.git /tmp/i-doit-scripts || \
+    git --quiet clone https://github.com/bheisig/i-doit-scripts.git /tmp/i-doit-scripts || \
         abort "Unable to clone repository"
     cd /tmp/i-doit-scripts/ || \
         abort "Unable to change directory"
