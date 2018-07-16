@@ -75,6 +75,19 @@ System configuration is almost done. On every login via SSH an dialog menu opens
 Now go back to i-doit and start working on your CMDB. :-)
 
 
+##  Default accounts
+
+| Account               | Username      | Password      |
+| --------------------- | ------------- | ------------- |
+| GNU/Linux incl. SSH   | `idoit`       | `idoit`       |
+| GNU/Linux excl. SSH   | `root`        | –             |
+| i-doit                | `admin`       | `admin`       |
+| i-doit                | `controller`  | `controller`  |
+| i-doit Admin Center   | `controller`  | `controller`  |
+| MariaDB               | `root`        | `root`        |
+| MariaDB               | `idoit`       | `idoit`       |
+
+
 ##  Contribute & support
 
 [Contributors are welcomed!](CONTRIBUTING.md) Report any issues to [our issue tracker](https://github.com/bheisig/i-doit-appliance/issues).
