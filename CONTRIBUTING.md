@@ -88,6 +88,10 @@ cd /path/to/i-doit-appliance
 make build
 ~~~
 
+See it in action:
+
+[![asciicast](https://asciinema.org/a/14.png)](https://asciinema.org/a/BWQW0oJljW4w9xqMr41lV6ixt?autoplay=1&speed=10)
+
 
 ### Hyper-V
 
