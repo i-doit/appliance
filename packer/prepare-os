@@ -141,9 +141,13 @@ function installFiles {
         abort "Unable to install file"
     chown root:root /etc/appliance_version || \
         abort "Unable to change owner"
+    install -m 664 "${srcDir}/issue-standard" "/etc/issue" || \
+        abort "Unable to install file"
+    install -m 664 "${srcDir}/issue-standard" "/etc/issue-net" || \
+        abort "Unable to install file"
     install -m 664 "${srcDir}/issue-standard" "/etc/" || \
         abort "Unable to install file"
-    chown root:root /etc/issue-standard || \
+    chown root:root /etc/issue* || \
         abort "Unable to change owner"
 }
 
