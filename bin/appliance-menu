@@ -57,6 +57,7 @@ function execute {
         "C" "Configuration" \
         "T" "Tools and services" \
         "A" "About" \
+        "X" "Logout" \
         2>&1 1>&3
     );
 
@@ -79,6 +80,9 @@ function execute {
                 "A")
                     appliance-about | less
                     execute
+                    ;;
+                "X")
+                    logout
                     ;;
                 *)
                     abort "Unknown choice"
