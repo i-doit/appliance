@@ -35,7 +35,8 @@ if [ "$MODE" != "start" ]; then
 fi
 
 applianceVersion="$(cat /etc/appliance_version)"
-ipAddress="$(ip route get 1 | awk '{print $NF;exit}')"
+ipAddress="$(ip route get 1 | awk '{print $NF;exit}' 2> /dev/null || \
+    echo "none")"
 
 function copyIssue {
     local file="$1"
@@ -43,9 +44,9 @@ function copyIssue {
     cp /etc/issue-standard /etc/"$file"
 
     {
-        echo "                              i-doit virtual appliance ${applianceVersion}"
+        echo "i-doit virtual appliance ${applianceVersion}"
         echo ""
-        echo "                                            $ipAddress"
+        echo "IP address: $ipAddress"
     } >> /etc/"$file"
 }
 

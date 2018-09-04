@@ -40,8 +40,12 @@ function execute {
     export DEBIAN_FRONTEND="noninteractive"
 
     changeHostname
-    installGuestAdditions
+    # TODO Installing VirtualBox Guest addtions causes a broken network
+    # connection:
+    #installGuestAdditions
+    configureAPT
     installDebianPackages
+    removeDebianPackages
     installFiles
     prepareSudo
     prepareUser "$USER" "/home/${USER}"
@@ -59,17 +63,20 @@ function execute {
     #       backups
 
     #   add tls vhost, but leave it disabled
+    #   HTTP/2.0 with self-signed cert
 }
 
 function changeHostname {
-    log "Change hostname"
+    log "Change hostname to $HOSTNAME"
 
-    echo "$HOSTNAME" > /etc/hostname
+    echo "$HOSTNAME" > /etc/hostname || \
+        abort "Unable to edit /etc/hostname"
 
     {
         echo -e "127.0.0.1\\t$HOSTNAME"
         echo -e "::1\\t\\t$HOSTNAME"
-    } >> /etc/hosts
+    } >> /etc/hosts || \
+        abort "Unable to edit /etc/hosts"
 }
 
 function installGuestAdditions {
@@ -77,16 +84,27 @@ function installGuestAdditions {
 
     test -f "$iso" || return
 
-    log "Install VirtualBox guest additions"
+    log "Install VirtualBox guest additions from ISO file"
 
     mount -t iso9660 -o loop "$iso" /mnt 2> /dev/null || \
         abort "Unable to mount ISO file"
     /mnt/VBoxLinuxAdditions.run || \
         abort "Unable to install guest additions"
     umount /mnt || \
-        abort "Unable to unmount guest additions"
+        abort "Unable to unmount ISO file"
     rm "$iso" || \
-        abort "Unable to remove guest additions"
+        abort "Unable to remove ISO file"
+}
+
+function configureAPT {
+    log "Configure APT"
+
+    {
+        echo "APT::Install-Recommends \"false\";"
+        echo "APT::AutoRemove::RecommendsImportant \"false\";"
+        echo "APT::AutoRemove::SuggestsImportant \"false\";"
+    } > /etc/apt/apt.conf.d/99_norecommends || \
+        abort "Unable to edit file"
 }
 
 function installDebianPackages {
@@ -106,8 +124,21 @@ function installDebianPackages {
     apt-get -qq --yes install \
         rsync sudo htop atop git build-essential mycli vim nano tmux \
         zsh procinfo pwgen tree unzip moreutils dirmngr dialog ntp \
-        nullmailer unattended-upgrades apt-listchanges || \
+        nullmailer unattended-upgrades apt-listchanges lsb-release \
+        distro-info-data || \
         abort "Unable to install required Debian packages"
+}
+
+function removeDebianPackages {
+    log "Remove Debian packages which are not needed"
+
+    apt-get -qq --yes remove --purge \
+        bluetooth bluez crda eject iw laptop-detect mutt powertop telnet \
+        wireless-regdb wireless-tools wpasupplicant || \
+        abort "Unable to remove Debian packages"
+
+    apt-get -qq --yes autoremove || \
+        abort "Unable to remove unnecessary Debian packages"
 }
 
 function installFiles {
@@ -191,7 +222,7 @@ function installIdoitCLI {
 
     ## TODO Problem with failed pipe (exit code 141):
     if [[ "$?" -ge 1 && "$?" -le 128 ]]; then
-        abort "nable to install via phive"
+        abort "Unable to install via phive"
     fi
 }
 

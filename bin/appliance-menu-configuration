@@ -181,6 +181,10 @@ function log {
     echo -e "$1"
 }
 
+function finish {
+    printf "\\033c"
+}
+
 function abort {
     echo -e "$1" 1>&2
     exit 1
@@ -189,5 +193,5 @@ function abort {
 ##--------------------------------------------------------------------------------------------------
 
 if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
-    setup && execute
+    setup && execute && finish
 fi
