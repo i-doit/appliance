@@ -10,7 +10,7 @@ We like you to read and follow our [code of conduct](CODE_OF_CONDUCT.md) before 
 
 ##  Use it
 
-The best and (probably) easiest way is to use one of the pre-built virtual applianced. It would be very nice to share your thoughts with us. We love to hear from you.
+The best and (probably) easiest way is to use one of the pre-built virtual appliance. It would be very nice to share your thoughts with us. We love to hear from you.
 
 If you have questions how to use it properly read the [documentation](README.md) carefully.
 
@@ -42,7 +42,7 @@ Notice, that any of your contributions merged into this repository will be [lice
 
 ##  Requirements
 
-Developers and build environments must meet at least these requirements:
+Developer and build environments must meet at least these requirements:
 
 *   [Packer](https://www.packer.io/)
 *   Virtualization support enabled for your hardware, especially your CPU
@@ -111,7 +111,7 @@ This project comes with some useful make rules:
 | --------------------- | --------------------------------------------- |
 | `make build`          | Build virtual appliance                       |
 | `make dist`           | Create distribution packages                  |
-| `make clean`          | Clean up                                      |
+| `make clean`          | Clean up project directory                    |
 | `make shellcheck`     | Validate shell scripts                        |
 | `make test`           | Test your environment                         |
 
