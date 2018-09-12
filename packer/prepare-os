@@ -125,7 +125,7 @@ function installDebianPackages {
         rsync sudo htop atop git build-essential mycli vim nano tmux \
         zsh procinfo pwgen tree unzip moreutils dirmngr dialog ntp \
         nullmailer unattended-upgrades apt-listchanges lsb-release \
-        distro-info-data || \
+        distro-info-data graphviz || \
         abort "Unable to install required Debian packages"
 }
 
