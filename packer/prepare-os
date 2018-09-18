@@ -122,59 +122,32 @@ function installDebianPackages {
     log "Install required Debian packages"
 
     apt-get -qq --yes install \
-        # idoit-support:
         apt-listchanges \
-        # Analyze host:
         atop \
-        # InSpec:
         auditd \
-        # make, i-doit-scripts, prepare-os:
         build-essential \
-        # appliance-menu*:
         dialog \
-        # GNU privacy guard:
         dirmngr \
-        # idoit-support:
         distro-info-data \
-        # prepare-os, appliance-update
         git \
-        # idoit-support, i-doit VIVA add-on:
         graphviz \
-        # Replacement for "top":
         htop \
-        # idoit-support:
         lsb-release \
-        # chronic, cron jobs:
         moreutils \
-        # Good replacement for mysql CLI client:
         mycli \
-        # Simple editor:
         nano \
-        # Update date/time automatically:
         ntp \
-        # SMTP host for i-doit, cron jobs:
         nullmailer \
-        # idoit-support:
         procinfo \
-        # idoit-pwd:
+        procps \
         pwgen \
-        # Useful for backups:
         rsync \
-        # idoit-jobs:
         sudo \
-        # Better "screen":
         tmux \
-        # Analyze host:
         tree \
-        # prepare-os:
         unattended-upgrades \
-        # idoit-install:
         unzip \
-        # Best editor(tm):
         vim \
-        # idoit-support
-        vmstat \
-        # Best shell(tm):
         zsh || \
         abort "Unable to install required Debian packages"
 }
