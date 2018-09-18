@@ -9,15 +9,15 @@ all : build
 build :
 	test ! -d $(BUILD_DIR)/$(NAME_PREFIX)-virtualbox/
 	test ! -d $(BUILD_DIR)/$(NAME_PREFIX)-vmware/
-	packer build packer/packer.json
+	packer build --only=virtualbox,vmware packer/packer.json
 
 build-virtualbox :
 	test ! -d $(BUILD_DIR)/$(NAME_PREFIX)-virtualbox/
-	packer build --only=virtualbox-iso packer/packer.json
+	packer build --only=virtualbox packer/packer.json
 
 build-vmware :
 	test ! -d $(BUILD_DIR)/$(NAME_PREFIX)-vmware/
-	packer build --only=vmware-iso packer/packer.json
+	packer build --only=vmware packer/packer.json
 
 dist : dist-virtualbox dist-vmware dist-hyper-v
 

@@ -1,2 +1,2 @@
 @echo off
-packer build packer/hyper-v.json
+packer build --only=hyper-v packer/packer.json
