@@ -40,11 +40,11 @@
             "ssh_password": "{{user `ssh_password`}}",
             "ssh_port": 22,
             "ssh_wait_timeout": "10000s",
-            "output_directory": "builds/{{user `vm_name`}}-{{.BuildName}}",
+            "output_directory": "builds/{{user `vm_name`}}-virtualbox",
             "shutdown_command": "echo '/sbin/shutdown -h -P now' > /tmp/shutdown.sh; echo '{{user `ssh_password`}}' | sudo -S sh '/tmp/shutdown.sh'",
             "shutdown_timeout": "60s",
             "virtualbox_version_file": ".vbox_version",
-            "vm_name": "{{user `vm_name`}}-{{.BuildName}}",
+            "vm_name": "{{user `vm_name`}}-virtualbox",
             "format": "ovf",
             "vboxmanage": [
                 [
@@ -90,7 +90,7 @@
             "iso_checksum_type": "sha512",
             "iso_checksum_url": "{{user `checksum`}}",
             "iso_url": "{{user `iso`}}",
-            "output_directory": "builds/{{user `vm_name`}}-{{.BuildName}}",
+            "output_directory": "builds/{{user `vm_name`}}-vmware",
             "shutdown_command": "echo '/sbin/shutdown -h -P now' > /tmp/shutdown.sh; echo '{{user `ssh_password`}}' | sudo -S sh '/tmp/shutdown.sh'",
             "shutdown_timeout": "60s",
             "ssh_password": "{{user `ssh_password`}}",
@@ -98,7 +98,7 @@
             "ssh_username": "{{user `ssh_username`}}",
             "ssh_wait_timeout": "10000s",
             "tools_upload_flavor": "linux",
-            "vm_name": "{{user `vm_name`}}-{{.BuildName}}",
+            "vm_name": "{{user `vm_name`}}-vmware",
             "version": "9",
             "vmx_data": {
                 "cpuid.coresPerSocket": "1",
@@ -142,10 +142,10 @@
             "ssh_password": "{{user `ssh_password`}}",
             "ssh_port": 22,
             "ssh_timeout" : "2h",
-            "output_directory": "builds/{{user `vm_name`}}-{{.BuildName}}",
+            "output_directory": "builds/{{user `vm_name`}}-hyper-v",
             "shutdown_command": "echo '/sbin/shutdown -h -P now' > /tmp/shutdown.sh; echo '{{user `ssh_password`}}' | sudo -S sh '/tmp/shutdown.sh'",
             "shutdown_timeout": "60s",
-            "vm_name": "{{user `vm_name`}}-{{.BuildName}}"
+            "vm_name": "{{user `vm_name`}}-hyper-v"
         }
     ],
     "provisioners": [
