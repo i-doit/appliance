@@ -41,6 +41,8 @@ If you're interested in other platforms, feel free to create an [issue](https://
 -   Stay up-to-date with…
     -   Unattended updates of distribution packages
     -   NTP
+-   Some important pre-configured security features are available:
+    -   [Host-based firewall](docs/firewall.md)
 
 
 ##  Download
