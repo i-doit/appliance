@@ -174,7 +174,7 @@
         {
             "type": "checksum",
             "checksum_types": ["sha512"],
-            "output": "builds/{{user `vm_name`}}_{{.BuildName}}/{{user `vm_name`}}_{{.BuildName}}_{{.ChecksumType}}.checksum"
+            "output": "builds/{{user `vm_name`}}-{{.BuildName}}/{{user `vm_name`}}-{{.BuildName}}-{{.ChecksumType}}.checksum"
         }
     ]
 }
