@@ -55,6 +55,7 @@ function execute {
     installIdoit
     ## TODO phive's key handling is too fragile… Expect timeouts:
     #installIdoitCLI
+    enableFirewall
     zeroDisk
     cleanUp
 
@@ -145,6 +146,7 @@ function installDebianPackages {
         sudo \
         tmux \
         tree \
+        ufw \
         unattended-upgrades \
         unzip \
         vim \
@@ -290,6 +292,23 @@ function autostartMenu {
     echo "test -x \"\$(command -v appliance-menu)\" && sudo appliance-menu" \
         >> "/home/${USER}"/.bashrc || \
         abort "Unable to add appliance menu to /home/${USER}/.bashrc"
+}
+
+function enableFirewall {
+    log "Enable host-based firewall ufw (frontend for iptables)"
+
+    ufw enable || \
+        abort "Unable to configure firewall"
+    ufw default deny incoming || \
+        abort "Unable to configure firewall"
+    ufw default allow outgoing || \
+        abort "Unable to configure firewall"
+    ufw allow ssh || \
+        abort "Unable to configure firewall"
+    ufw allow 80/tcp || \
+        abort "Unable to configure firewall"
+    ufw allow 443/tcp || \
+        abort "Unable to configure firewall"
 }
 
 function zeroDisk {
