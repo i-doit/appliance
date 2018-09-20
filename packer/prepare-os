@@ -46,13 +46,13 @@ function execute {
     configureAPT
     installDebianPackages
     removeDebianPackages
+    installIdoit
     installFiles
     prepareSudo
     prepareUser "$USER" "/home/${USER}"
     autostartMenu
     grantAccess
     prepareUser "root" "/root"
-    installIdoit
     ## TODO phive's key handling is too fragile… Expect timeouts:
     #installIdoitCLI
     enableFirewall
@@ -171,37 +171,41 @@ function installFiles {
 
     log "Install files"
 
-    install -m 775 "${srcDir}"/appliance-* "/usr/local/bin/" || \
+    install -m 775 "$srcDir"/appliance-* /usr/local/bin/ || \
         abort "Unable to install scripts"
     chown root:root -R /usr/local/bin || \
         abort "Unable to change owner"
 
-    install -m 664 "${srcDir}/bash_aliases" "/root/.bash_aliases" || \
+    install -m 664 "$srcDir"/bash_aliases /root/.bash_aliases || \
         abort "Unable to install file"
-    install -m 664 "${srcDir}/bashrc" "/root/.bashrc" || \
+    install -m 664 "$srcDir"/bashrc /root/.bashrc || \
         abort "Unable to install file"
     chown root:root -R /root/ || \
         abort "Unable to change owner"
 
-    install -m 664 "${srcDir}/bash_aliases" "/home/${USER}/.bash_aliases" || \
+    install -m 664 "$srcDir"/bash_aliases /home/"$USER"/.bash_aliases || \
         abort "Unable to install file"
-    install -m 664 "${srcDir}/bashrc" "/home/${USER}/.bashrc" || \
+    install -m 664 "$srcDir"/bashrc /home/"$USER"/.bashrc || \
         abort "Unable to install file"
-    chown "$USER":"$USER" -R "/home/${USER}/" || \
+    chown "$USER":"$USER" -R /home/"$USER"/ || \
         abort "Unable to change owner"
 
-    install -m 775 "${srcDir}"/network/if-up.d/* "/etc/network/if-up.d/" || \
+    install -m 644 "$srcDir"/apache2/sites-available/*.conf \
+        /etc/apache2/sites-available/ || \
+        abort "Unable to install files"
+
+    install -m 775 "$srcDir"/network/if-up.d/* /etc/network/if-up.d/ || \
         abort "Unable to install script"
 
-    install -m 664 "${srcDir}/appliance_version" "/etc/" || \
+    install -m 664 "$srcDir"/appliance_version /etc/ || \
         abort "Unable to install file"
     chown root:root /etc/appliance_version || \
         abort "Unable to change owner"
-    install -m 664 "${srcDir}/issue-standard" "/etc/issue" || \
+    install -m 664 "$srcDir"/issue-standard /etc/issue || \
         abort "Unable to install file"
-    install -m 664 "${srcDir}/issue-standard" "/etc/issue-net" || \
+    install -m 664 "$srcDir"/issue-standard /etc/issue-net || \
         abort "Unable to install file"
-    install -m 664 "${srcDir}/issue-standard" "/etc/" || \
+    install -m 664 "$srcDir"/issue-standard /etc/ || \
         abort "Unable to install file"
     chown root:root /etc/issue* || \
         abort "Unable to change owner"
@@ -223,6 +227,12 @@ function installIdoit {
     if [[ "$?" -ge 1 && "$?" -le 128 ]]; then
         abort "Unable to install i-doit"
     fi
+
+    log "Remove unnecessary Apache configuration files"
+    rm \
+        /etc/apache2/sites-available/000-default.conf \
+        /etc/apache2/sites-available/default-ssl.conf || \
+        abort "Unable to remove files"
 }
 
 function installIdoitCLI {

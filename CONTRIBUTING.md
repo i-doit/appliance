@@ -203,14 +203,16 @@ This project comes with some useful make rules:
 ├── hyper-v.bat                     # Build virtual appliance for Hyper-V
 ├── dist                            # Distribution files of virtual appliances
 │   └── *.zip
-├── docs
-│   ├── issue_template.md
-│   └── pull_request_template.md
-├── dotfiles                        # Dotfiles for ~
+├── docs                            # Documentation
+│   └── […]
+├── dotfiles                        # Dot files for ~
 │   ├── bash_aliases
 │   └── bashrc
 ├── .editorconfig
 ├── etc                             # Will be copied to /etc/
+│   ├── apache2
+│   │   └── sites-available
+│   │       └── i-doit-secure.conf
 │   ├── appliance_version
 │   ├── issue-standard
 │   └── network
@@ -218,6 +220,8 @@ This project comes with some useful make rules:
 │           └── create-issue-files
 ├── .gitattributes
 ├── .gitignore
+├── hyper-v.bat                     # Build virtual appliance for Hyper-V
+├── inspec_cache                    # Cached InSpec compliance tests
 ├── LICENSE
 ├── Makefile                        # Make rules
 ├── packer
@@ -230,7 +234,6 @@ This project comes with some useful make rules:
 │   └── *.iso
 ├── README.md
 └── tests                           # Tests
-    ├── checksums                   # Verify builds
     ├── htaccess                    # Test Apache configuration settings
     └── inspec                      # Run InSpec compliance tests
 ~~~
