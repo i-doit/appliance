@@ -1,3 +1,4 @@
 builds/
 dist/
 packer_cache/
+inspec_cache/

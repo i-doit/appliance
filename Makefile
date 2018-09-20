@@ -1,6 +1,7 @@
 BUILD_DIR ?= builds
 DIST_DIR ?= dist
 CACHE_DIR ?= packer_cache
+INSPEC_CACHE_DIR ?= inspec_cache
 NAME_PREFIX ?= i-doit-virtual-appliance-debian-9-amd64
 DIST_FILES ?= CHANGELOG.md LICENSE README.md
 
@@ -65,9 +66,11 @@ clean :
 	test -n $(BUILD_DIR)
 	test -n $(DIST_DIR)
 	test -n $(CACHE_DIR)
+	test -n $(INSPEC_CACHE_DIR)
 	test -d ./$(BUILD_DIR)/ && rm -r ./$(BUILD_DIR)/
 	test -d ./$(DIST_DIR)/ && rm -r ./$(DIST_DIR)/
 	test -d ./$(CACHE_DIR)/ && rm -r ./$(CACHE_DIR)/
+	test -d ./$(INSPEC_CACHE_DIR)/ && rm -r ./$(INSPEC_CACHE_DIR)/
 
 shellcheck :
 	shellcheck bin/appliance-about
