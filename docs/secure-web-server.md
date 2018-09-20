@@ -22,9 +22,11 @@ On the command-line edit the file `/etc/apache2/sites-available/i-doit-secure.co
 sudo editor /etc/apache2/sites-available/i-doit-secure.conf
 ~~~
 
-Change all strings containing `cmdb.example.com` with the proper hostname/FQDN/IP address you're using for this virtual appliance.
+At the beginning you see some lines beginning with `Define`.
 
-Also set the right paths to your certificates for the settings `SSLCertificateFile` and `SSLCertificateKeyFile`.
+Change `IDOIT_HOST` with the proper hostname/FQDN/IP address you're using for this virtual appliance.
+
+Also replace the values in `IDOIT_CERT_FILE` and `IDOIT_CERT_KEY_FILE` with the paths to your certificates.
 
 An optional extra step to anonymize Apache's access logs. Un-comment the setting `LogFormat` so no IP addresses will be logged anymore.
 
