@@ -42,6 +42,25 @@ dist-hyper-v :
 	mkdir -p $(DIST_DIR)/
 	mv $(BUILD_DIR)/$(NAME_PREFIX)-hyper-v.zip $(DIST_DIR)/
 
+prepare-host :
+	sudo apt install git build-essential shellcheck ruby ruby-dev wget curl lsb-release zip unzip quemu-utils libdigest-sha-perl
+	wget https://releases.hashicorp.com/packer/1.3.1/packer_1.3.1_linux_amd64.zip
+	wget https://releases.hashicorp.com/packer/1.3.1/packer_1.3.1_SHA256SUMS
+	wget https://releases.hashicorp.com/packer/1.3.1/packer_1.3.1_SHA256SUMS.sig
+	curl https://keybase.io/hashicorp/pgp_keys.asc | gpg --import
+	gpg --verify packer_1.3.1_SHA256SUMS.sig packer_1.3.1_SHA256SUMS
+	shasum -a 256 -c packer_1.3.1_SHA256SUMS
+	unzip packer_1.3.1_linux_amd64.zip
+	sudo mv packer /usr/local/bin/
+	rm packer_1.3.1_linux_amd64.zip packer_1.3.1_SHA256SUMS packer_1.3.1_SHA256SUMS.sig
+	echo "deb https://download.virtualbox.org/virtualbox/debian $(lsb_release -c -s) contrib" > /etc/apt/sources.list.d/virtualbox.list
+	wget https://www.virtualbox.org/download/oracle_vbox_2016.asc
+	wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | apt-key add -
+	apt-get update
+	apt-get install virtualbox-5.2
+	sudo gem install inspec
+	git clone https://github.com/bheisig/i-doit-appliance.git
+
 clean :
 	test -n $(BUILD_DIR)
 	test -n $(DIST_DIR)
@@ -64,6 +83,7 @@ shellcheck :
 	shellcheck packer/prepare-os
 
 test :
+	bash --version
 	git --version
 	packer --version
 	packer validate packer/packer.json
@@ -71,3 +91,4 @@ test :
 	vmware-installer -t
 	ovftool --version
 	shellcheck --version
+	inspec --version

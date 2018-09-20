@@ -106,6 +106,15 @@ Hyper-V is only available on a Windows host. This Hyper-V setup has been tested:
 *   Your user needs to added to the "Hyper-V Administrators" group
 
 
+##  Install InSpec
+
+We use [InSpec](https://inspec.io/) to perform common and some appliance-specific compliance tests. Installation is done by:
+
+~~~ {.bash}
+sudo gem install inspec
+~~~
+
+
 ### Clone repository
 
 ~~~ {.bash}
@@ -119,7 +128,16 @@ After that, change to your cloned repository and do your stuff. Do not forget to
 Notice, that any of your contributions merged into this repository will be [licensed under the AGPLv3](LICENSE).
 
 
-##  Build virtual appliances
+### Verify your host
+
+To make sure you installed and configured all dependencies properly run:
+
+~~~ {.bash}
+make test
+~~~
+
+
+## Build virtual appliances
 
 The virtual appliances for VirtualBox and VMware are built on a GNU/Linux host, the one for Hyper-V on a Windows host.
 
@@ -148,6 +166,11 @@ cd C:\path\to\i-doit-appliance
 ~~~
 
 
+##  Test virtual appliance
+
+On a GNU/Linux host you should test whether the virtual appliance has been built properly. Therefore, you find some shell scripts under `tests/`. These tests can only be performed while virtual appliance has been booted.
+
+
 ##  Make rules
 
 This project comes with some useful make rules:
@@ -157,10 +180,11 @@ This project comes with some useful make rules:
 | `make build`              | Build virtual appliances in all flavors       |
 | `make build-virtualbox`   | Build virtual appliance for VirtualBox        |
 | `make build-vmware`       | Build virtual appliance for VMware            |
+| `make clean`              | Clean up project directory                    |
 | `make dist`               | Create distribution packages in all flavors   |
 | `make dist-virtualbox`    | Create distribution package for VirtualBox    |
 | `make dist-vmware`        | Create distribution package for VMware        |
-| `make clean`              | Clean up project directory                    |
+| `make prepare-host`       | Setup a build/development environment         |
 | `make shellcheck`         | Validate shell scripts                        |
 | `make test`               | Test your environment                         |
 
@@ -204,5 +228,9 @@ This project comes with some useful make rules:
 │   └── prepare-os                  # Automagically prepare OS
 ├── packer_cache                    # Cache for pre-downloded ISO files
 │   └── *.iso
-└── README.md
+├── README.md
+└── tests                           # Tests
+    ├── checksums                   # Verify builds
+    ├── htaccess                    # Test Apache configuration settings
+    └── inspec                      # Run InSpec compliance tests
 ~~~

@@ -1,0 +1,143 @@
+#!/bin/bash
+
+##
+## i-doit virtual appliance
+## Perform InSpec compliance tests
+##
+
+##
+## Copyright (C) 2018 synetics GmbH, <https://i-doit.com/>
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Affero General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+## GNU Affero General Public License for more details.
+##
+## You should have received a copy of the GNU Affero General Public License
+## along with this program. If not, see <http://www.gnu.org/licenses/>.
+##
+
+set -euo pipefail
+IFS=$'\n\t'
+
+##
+## Configuration
+##
+
+: "${INSPEC_TARGET:=""}"
+: "${INSPEC_CACHE:="./inspec_cache"}"
+
+##--------------------------------------------------------------------------------------------------
+
+function execute {
+    log "Perform InSpec compliance tests"
+
+    createCacheDir
+    execBaseline "linux-patch-baseline"
+    execBaseline "ssl-baseline"
+    execBaseline "apache-baseline"
+    execBaseline "php-baseline"
+    execBaseline "apache-baseline"
+}
+
+function createCacheDir {
+    if [[ ! -d "$INSPEC_CACHE" ]]; then
+        mkdir -p "$INSPEC_CACHE" || \
+            abort "Unable to create directory"
+    fi
+}
+
+function execBaseline {
+    local baseline="$1"
+    local repository="https://github.com/dev-sec/$baseline"
+    local directory="${INSPEC_CACHE}/$baseline"
+
+    if [[ -d "$directory" ]]; then
+        cd "$directory" || \
+            abort "Unable to change directory"
+        git pull --quiet || \
+            abort "Unable to pull from git repository"
+    else
+        git clone --quiet "$repository" "$directory" || \
+            abort "Unable to clone git repository"
+        cd "$directory" || \
+            abort "Unable to change directory"
+    fi
+
+    inspec exec --target="${INSPEC_TARGET}" --sudo . || \
+        log "Please, take a deeper look at what InSpec has found"
+}
+
+function log {
+    echo -e "$1"
+}
+
+function testCommand {
+    local command="$1"
+    test -x "$(command -v "$command")" || abort "$command not found"
+}
+
+function setup {
+    testCommand "git"
+    testCommand "inspec"
+}
+
+function finish {
+    log "Done. Have fun :-)"
+    exit 0
+}
+
+function printUsage {
+    local exampleTarget="ssh://idoit:idoit@cmdb.example.com:23"
+
+    cat << EOF
+Usage: ${BASH_SOURCE[0]} TARGET
+
+Examples:
+
+    1) ${BASH_SOURCE[0]} ${exampleTarget}
+    2) INSPEC_TARGET="${exampleTarget}" ${BASH_SOURCE[0]}
+    3) echo "${exampleTarget}" | ${BASH_SOURCE[0]}
+    4) ${BASH_SOURCE[0]} # Run in interactive mode
+EOF
+
+    exit 0
+}
+
+function abort {
+    echo -e "$1" 1>&2
+    echo "Operation failed. Please check what is wrong and try again." 1>&2
+    exit 1
+}
+
+##--------------------------------------------------------------------------------------------------
+
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
+    setup
+
+    if [[ -n "$INSPEC_TARGET" ]]; then
+        execute
+    elif [[ -n "${1:-}" ]]; then
+        case "$1" in
+            "--help"|"-h"|"help"|"-?")
+                printUsage
+                ;;
+            *)
+                export INSPEC_TARGET="$1"
+                execute
+                ;;
+            esac
+    else
+        if [ -t 0 ]; then
+            echo -n "Enter InSpec target: "
+        fi
+        read -r line
+        export INSPEC_TARGET="$line"
+        execute
+    fi
+fi

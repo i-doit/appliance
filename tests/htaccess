@@ -1,0 +1,176 @@
+#!/bin/bash
+
+##
+## i-doit virtual appliance
+## Test Apache configuration settings
+##
+
+##
+## Copyright (C) 2018 synetics GmbH, <https://i-doit.com/>
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Affero General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+## GNU Affero General Public License for more details.
+##
+## You should have received a copy of the GNU Affero General Public License
+## along with this program. If not, see <http://www.gnu.org/licenses/>.
+##
+
+set -uo pipefail
+IFS=$'\n\t'
+
+##
+## Configuration
+##
+
+: "${IDOIT_URL:=""}"
+
+declare -A URLS
+URLS["/"]="200"
+URLS["/index.php"]="200"
+URLS["/controller.php"]="200"
+URLS["/proxy.php"]="200"
+URLS["/src/"]="403"
+URLS["/src/di_services.yml"]="403"
+URLS["/src/config.inc.php"]="403"
+URLS["/src/jsonrpc.php"]="200"
+URLS["/src/tools/php/rt.php"]="200"
+URLS["/src/tools/php/barcode.php?d=42"]="200"
+URLS["/src/tools/php/barcode_window.php"]="200"
+URLS["/src/tools/php/qr/qr.php"]="200"
+URLS["/src/tools/php/qr/qr_img.php?d=42"]="200"
+URLS["/src/tools/js/js.php"]="200"
+URLS["/admin/"]="200"
+URLS["/search"]="200"
+URLS["/?load=update"]="200"
+URLS["/?load=api_properties"]="200"
+URLS["/updates"]="301"
+URLS["/updates/"]="302"
+URLS["/console.php"]="403"
+URLS["/controller"]="403"
+URLS["/checkmk_transfer.sh"]="403"
+URLS["/idoit-rights.sh"]="403"
+URLS["/setup/install.sh"]="403"
+URLS["/src/config.inc.php"]="403"
+URLS["/imports/"]="403"
+URLS["/imports/qcw/"]="403"
+URLS["/imports/qcw/default.xml"]="403"
+URLS["/imports/scripts/"]="403"
+URLS["/imports/scripts/inventory.zip"]="403"
+URLS["/log/"]="403"
+URLS["/log/errors"]="403"
+URLS["/log/exception.log"]="403"
+URLS["/log/ldap"]="403"
+URLS["/log/system"]="403"
+URLS["/temp/"]="403"
+URLS["/temp/style.css"]="200"
+URLS["/upload/"]="403"
+URLS["/upload/files/"]="403"
+URLS["/vendor/"]="403"
+URLS["/.htaccess"]="403"
+# Works only with official demo data:
+URLS["/imports/Excel_to_idoit_Names.csv"]="403"
+
+FAILS=0
+
+##--------------------------------------------------------------------------------------------------
+
+function execute {
+    echo -e "i-doit instance: \e[0;33m$IDOIT_URL\033[0m"
+    echo ""
+
+    for url in "${!URLS[@]}"; do
+        testURL "$url" "${URLS[$url]}"
+    done
+
+    echo ""
+
+    case "$FAILS" in
+        0)
+            echo -e "\e[0;32mEverything is fine\033[0m"
+            ;;
+        1)
+            echo -e "\e[0;31m1 error found\033[0m"
+            ;;
+        *)
+            echo -e "\e[0;31m$FAILS errors found\033[0m"
+            ;;
+    esac
+}
+
+function testURL {
+    local url="$1"
+    local expectedStatusCode="$2"
+    local actualStatusCode=""
+
+    actualStatusCode="$(curl -o /dev/null --silent --head --write-out '%{http_code}\n' --url "${IDOIT_URL}${url}")"
+
+    if [[ "$expectedStatusCode" = "$actualStatusCode" ]]; then
+        echo -e "\e[0;32m✔\033[0m $actualStatusCode ${url}"
+    else
+        echo -e "\e[0;31m✘\033[0m $actualStatusCode ${url} (expected ${expectedStatusCode})"
+        ((FAILS++))
+    fi
+}
+
+function printUsage {
+    local exampleURL="https://cmdb.example.com/i-doit"
+
+    cat << EOF
+Usage: ${BASH_SOURCE[0]} URL
+
+Examples:
+
+    1) ${BASH_SOURCE[0]} ${exampleURL}
+    2) IDOIT_URL="${exampleURL}" ${BASH_SOURCE[0]}
+    3) echo "${exampleURL}" | ${BASH_SOURCE[0]}
+    4) ${BASH_SOURCE[0]} # Run in interactive mode
+EOF
+
+    exit 0
+}
+
+function abort {
+    echo "$1"
+    exit 1
+}
+
+function testCommand {
+    local command="$1"
+    test -x "$(command -v "$command")" || abort "$command not found"
+}
+
+function setup {
+    testCommand "curl"
+}
+
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
+    setup
+
+    if [[ -n "$IDOIT_URL" ]]; then
+        execute
+    elif [[ -n "${1:-}" ]]; then
+        case "$1" in
+            "--help"|"-h"|"help"|"-?")
+                printUsage
+                ;;
+            *)
+                export IDOIT_URL="$1"
+                execute
+                ;;
+            esac
+    else
+        if [ -t 0 ]; then
+            echo -n "Enter URL to i-doit: "
+        fi
+        read -r line
+        export IDOIT_URL="$line"
+        execute
+    fi
+fi
