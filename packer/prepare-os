@@ -29,10 +29,10 @@ IFS=$'\n\t'
 ## Configuration
 ##
 
-USER="idoit"
-HOSTNAME="idoitappliance"
+: "${IVA_USER:="idoit"}"
+: "${IVA_HOSTNAME:="idoitappliance"}"
 
-##--------------------------------------------------------------------------------------------------
+##------------------------------------------------------------------------------
 
 function execute {
     log "Prepare operating system"
@@ -49,7 +49,7 @@ function execute {
     installIdoit
     installFiles
     prepareSudo
-    prepareUser "$USER" "/home/${USER}"
+    prepareUser "$IVA_USER" "/home/${IVA_USER}"
     autostartMenu
     grantAccess
     prepareUser "root" "/root"
@@ -68,20 +68,20 @@ function execute {
 }
 
 function changeHostname {
-    log "Change hostname to $HOSTNAME"
+    log "Change hostname to $IVA_HOSTNAME"
 
-    echo "$HOSTNAME" > /etc/hostname || \
+    echo "$IVA_HOSTNAME" > /etc/hostname || \
         abort "Unable to edit /etc/hostname"
 
     {
-        echo -e "127.0.0.1\\t$HOSTNAME"
-        echo -e "::1\\t\\t$HOSTNAME"
+        echo -e "127.0.0.1\\t$IVA_HOSTNAME"
+        echo -e "::1\\t\\t$IVA_HOSTNAME"
     } >> /etc/hosts || \
         abort "Unable to edit /etc/hosts"
 }
 
 function installGuestAdditions {
-    local iso="/home/${USER}/VBoxGuestAdditions.iso"
+    local iso="/home/${IVA_USER}/VBoxGuestAdditions.iso"
 
     test -f "$iso" || return
 
@@ -183,11 +183,11 @@ function installFiles {
     chown root:root -R /root/ || \
         abort "Unable to change owner"
 
-    install -m 664 "$srcDir"/bash_aliases /home/"$USER"/.bash_aliases || \
+    install -m 664 "$srcDir"/bash_aliases /home/"$IVA_USER"/.bash_aliases || \
         abort "Unable to install file"
-    install -m 664 "$srcDir"/bashrc /home/"$USER"/.bashrc || \
+    install -m 664 "$srcDir"/bashrc /home/"$IVA_USER"/.bashrc || \
         abort "Unable to install file"
-    chown "$USER":"$USER" -R /home/"$USER"/ || \
+    chown "$IVA_USER":"$IVA_USER" -R /home/"$IVA_USER"/ || \
         abort "Unable to change owner"
 
     install -m 644 "$srcDir"/apache2/sites-available/*.conf \
@@ -214,10 +214,15 @@ function installFiles {
 function installIdoit {
     log "Install i-doit"
 
-    git clone --quiet https://github.com/bheisig/i-doit-scripts.git /tmp/i-doit-scripts || \
+    git clone --quiet \
+        https://github.com/bheisig/i-doit-scripts.git \
+        /tmp/i-doit-scripts || \
         abort "Unable to clone repository"
     cd /tmp/i-doit-scripts/ || \
         abort "Unable to change directory"
+    ## TODO Stick with master branch:
+    git checkout fpm || \
+        abort "Unable to checkout branch"
     make install || \
         abort "Unable to install i-doit scripts"
 
@@ -242,7 +247,9 @@ function installIdoitCLI {
         abort "Unable to download phive"
     wget --quiet -O phive.phar.asc https://phar.io/releases/phive.phar.asc || \
         abort "Unable to download signature"
-    gpg --keyserver hkps.pool.sks-keyservers.net --recv-keys 0x9D8A98B29B2D5D79 || \
+    gpg \
+        --keyserver hkps.pool.sks-keyservers.net \
+        --recv-keys 0x9D8A98B29B2D5D79 || \
         abort "Unable to download public key"
     gpg --verify phive.phar.asc phive.phar || \
         abort "Unable to verify phive"
@@ -294,14 +301,14 @@ EOF
 
 function grantAccess {
     log "Grant user access to logs"
-    usermod -aG systemd-journal "$USER" || \
-        abort "Unable to add user $USER to group systemd-journal"
+    usermod -aG systemd-journal "$IVA_USER" || \
+        abort "Unable to add user $IVA_USER to group systemd-journal"
 }
 
 function autostartMenu {
     echo "test -x \"\$(command -v appliance-menu)\" && sudo appliance-menu" \
-        >> "/home/${USER}"/.bashrc || \
-        abort "Unable to add appliance menu to /home/${USER}/.bashrc"
+        >> "/home/${IVA_USER}"/.bashrc || \
+        abort "Unable to add appliance menu to /home/${IVA_USER}/.bashrc"
 }
 
 function enableFirewall {
@@ -341,7 +348,8 @@ function cleanUp {
 }
 
 function setup {
-    test "$(whoami)" = "root" || abort "Only user 'root' may execute this script"
+    test "$(whoami)" = "root" || \
+        abort "Only user 'root' may execute this script"
 }
 
 function log {
@@ -359,7 +367,7 @@ function abort {
     exit 1
 }
 
-##--------------------------------------------------------------------------------------------------
+##------------------------------------------------------------------------------
 
 if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
     setup && execute && finish
