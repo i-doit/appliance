@@ -45,7 +45,6 @@ function copyIssue {
 
     {
         echo "i-doit virtual appliance ${applianceVersion}"
-        echo ""
         echo "IP address: $ipAddress"
     } >> /etc/"$file"
 }
