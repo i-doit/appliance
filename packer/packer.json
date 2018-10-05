@@ -6,7 +6,10 @@
         "root_password": "idoit",
         "iso": "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-9.5.0-amd64-netinst.iso",
         "checksum": "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS",
-        "vm_name": "i-doit-virtual-appliance-debian-9-amd64"
+        "vm_name": "i-doit-virtual-appliance-debian-9-amd64",
+        "cpu_cores": "2",
+        "ram_size": "4096",
+        "disk_size": "20480"
     },
     "builders": [
         {
@@ -36,7 +39,7 @@
                 "<enter><wait>"
             ],
             "boot_wait": "10s",
-            "disk_size": 10240,
+            "disk_size": "{{user `disk_size`}}",
             "guest_os_type": "Debian_64",
             "headless": true,
             "http_directory": "packer/http",
@@ -58,13 +61,13 @@
                     "modifyvm",
                     "{{.Name}}",
                     "--memory",
-                    "4096"
+                    "{{user `ram_size`}}"
                 ],
                 [
                     "modifyvm",
                     "{{.Name}}",
                     "--cpus",
-                    "2"
+                    "{{user `cpu_cores`}}"
                 ]
             ]
         },
@@ -96,7 +99,7 @@
             ],
             "boot_wait": "10s",
             "disk_type_id": 0,
-            "disk_size": 10240,
+            "disk_size": "{{user `disk_size`}}",
             "guest_os_type": "debian8-64",
             "headless": false,
             "http_directory": "packer/http",
@@ -116,8 +119,8 @@
             "vmx_data": {
                 "cpuid.coresPerSocket": "1",
                 "ethernet0.pciSlotNumber": "32",
-                "memsize": "4096",
-                "numvcpus": "2"
+                "memsize": "{{user `ram_size`}}",
+                "numvcpus": "{{user `cpu_cores`}}"
             }
         },
         {
@@ -148,15 +151,15 @@
             ],
             "boot_wait": "10s",
             "communicator": "ssh",
-            "cpu": 2,
-            "disk_size": 10240,
+            "cpu": "{{user `cpu_cores`}}",
+            "disk_size": "{{user `disk_size`}}",
             "generation": 1,
             "headless": false,
             "http_directory": "packer/http",
             "iso_checksum_type": "sha512",
             "iso_checksum_url": "{{user `checksum`}}",
             "iso_url": "{{user `iso`}}",
-            "ram_size": 2048,
+            "ram_size": "{{user `ram_size`}}",
             "ssh_username": "{{user `ssh_username`}}",
             "ssh_password": "{{user `ssh_password`}}",
             "ssh_port": 22,
