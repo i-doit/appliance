@@ -2,10 +2,9 @@
 
 Pre-configured virtual machines (VM) for i-doit
 
+## About
 
-##  About
-
-[i-doit](https://i-doit.com) is a software application for IT documentation and a CMDB (Configuration Management Database). This application is very useful to collect all your knowledge about the IT infrastructure you are dealing with. i-doit is a Web application and [has an exhausting API](https://kb.i-doit.com/pages/viewpage.action?pageId=37355644) which is very useful to automate your infrastructure.
+[i-doit](https://i-doit.com) is a software application for IT documentation and a CMDB (Configuration Management Database). This application is very useful to collect all your knowledge about the IT infrastructure you are dealing with. i-doit is a Web application and [has an powerful API](https://kb.i-doit.com/pages/viewpage.action?pageId=37355644) which is very useful to automate your infrastructure.
 
 Our goal is to provide the best experience with i-doit right from the beginning. Just download, import and start our virtual appliance in your virtualization cluster (or even on your laptop). Then you have:
 
@@ -13,8 +12,7 @@ Our goal is to provide the best experience with i-doit right from the beginning.
 -   A stable operating system system in the background
 -   …which is highly performant, reliable, reasonable, secure, and up-to-date
 
-
-##  Supported platforms
+## Supported platforms
 
 At the moment, these virtualization platforms are supported (in alphabetical order):
 
@@ -24,8 +22,7 @@ At the moment, these virtualization platforms are supported (in alphabetical ord
 
 If you're interested in other platforms, feel free to [raise an issue](https://github.com/bheisig/i-doit-appliance/issues).
 
-
-##  Features
+## Features
 
 These are the highlights why to use the i-doit virtual appliance in a production environment:
 
@@ -54,13 +51,11 @@ These are the highlights why to use the i-doit virtual appliance in a production
 
 As there is a new version of i-doit published by us, the virtual appliance will be created from scratch for every supported platform. We use reproducible builds which gives us (and you) an predictable and robust build environment. Release cycles are shorter because build jobs are automated. But before releasing them each build will be heavily penetrated by automated tests.
 
-
-##  Download
+## Download
 
 Now you like to try out the virtual appliance for yourself? Currently, there is only [an older version available for i-doit pro](https://www.i-doit.com/en/trial-version/). We will publish pre-built releases as soon as possible.
 
-
-##  Getting started
+## Getting started
 
 After downloading the zip file suitable for your virtualization environment extract it. It contains all files needed to import. The import process depends on you virtualization environment and is not part of this documentation.
 
@@ -86,8 +81,7 @@ System configuration is almost done. On every login via SSH an dialog menu opens
 
 Now go back to i-doit and start working on your CMDB. :-)
 
-
-##  Default accounts
+## Default accounts
 
 | Account               | Username      | Password      |
 | --------------------- | ------------- | ------------- |
@@ -99,8 +93,7 @@ Now go back to i-doit and start working on your CMDB. :-)
 | MariaDB super user    | `root`        | `root`        |
 | MariaDB               | `idoit`       | `idoit`       |
 
-
-##  Resources
+## Resources
 
 We recommend to check out these resources:
 
@@ -111,14 +104,12 @@ We recommend to check out these resources:
 -   [i-doit customer portal](https://login.i-doit.com) for updates, add-ons and more
 -   [i-doit scripts](https://github.com/bheisig/i-doit-scripts) (as mentioned before these scripts are very helpful to maintain i-doit)
 
-
-##  Contribute & support
+## Contribute & support
 
 [Contributors are welcome!](CONTRIBUTING.md) Report issues to [our issue tracker](https://github.com/bheisig/i-doit-appliance/issues). For professional support, refer to the [i-doit Help Center](https://help.i-doit.com/).
 
+## Copyright & license
 
-##  Copyright & license
-
-Copyright (C) 2018 [synetics GmbH](https://i-doit.com/)
+Copyright (C) 2018-19 [synetics GmbH](https://i-doit.com/)
 
 Licensed under the [GNU Affero GPL version 3 or later (AGPLv3+)](https://gnu.org/licenses/agpl.html). This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.

@@ -28,7 +28,7 @@ IFS=$'\n\t'
 ## Configuration
 ##
 
-USER="root"
+: "${IVA_USER:="idoit"}"
 CONFIGURATION_FILE="/etc/i-doit/i-doit.sh"
 
 ##--------------------------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ function execute {
     export HISTFILE=/dev/null
 
     clearHome "/root"
-    clearHome "/home/${USER}"
+    clearHome "/home/${IVA_USER}"
     clearIdoit
     clearBackups
     clearLogs
@@ -110,7 +110,7 @@ function clearAPT {
 }
 
 function setup {
-    test "$(whoami)" = "$USER" || abort "Only user '${USER}' may execute this script"
+    test "$(whoami)" = "root" || abort "Only super-user root may execute this script"
 
     test -f "$CONFIGURATION_FILE" || abort "Missing configuration file '${CONFIGURATION_FILE}'"
 

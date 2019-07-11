@@ -48,6 +48,7 @@ function execute {
     removeDebianPackages
     installIdoit
     installFiles
+    updateApacheConfig
     prepareSudo
     prepareUser "$IVA_USER" "/home/${IVA_USER}"
     autostartMenu
@@ -56,6 +57,8 @@ function execute {
     ## TODO phive's key handling is too fragile… Expect timeouts:
     #installIdoitCLI
     enableFirewall
+    ## Configure etckeeper after most configuration steps are done:
+    configureEtckeeper
     zeroDisk
     cleanUp
 
@@ -130,6 +133,7 @@ function installDebianPackages {
         dialog \
         dirmngr \
         distro-info-data \
+        etckeeper \
         git \
         graphviz \
         htop \
@@ -220,9 +224,6 @@ function installIdoit {
         abort "Unable to clone repository"
     cd /tmp/i-doit-scripts/ || \
         abort "Unable to change directory"
-    ## TODO Stick with master branch:
-    git checkout fpm || \
-        abort "Unable to checkout branch"
     make install || \
         abort "Unable to install i-doit scripts"
 
@@ -232,12 +233,24 @@ function installIdoit {
     if [[ "$?" -ge 1 && "$?" -le 128 ]]; then
         abort "Unable to install i-doit"
     fi
+}
 
-    log "Remove unnecessary Apache configuration files"
-    rm \
-        /etc/apache2/sites-available/000-default.conf \
-        /etc/apache2/sites-available/default-ssl.conf || \
-        abort "Unable to remove files"
+function updateApacheConfig {
+    local htaccessFile="/var/www/html/.htaccess"
+    local apacheConfigFile="/etc/apache2/sites-available/i-doit-secure.conf"
+    local apacheSubstitution="## Insert content from .htaccess file"
+
+    log "Update Apache's VHost config from i-doit's htaccess file"
+
+    sed -i \
+        -e "/${apacheSubstitution}/ {" \
+        -e "r ${htaccessFile}" \
+        -e "d" \
+        -e "}" \
+        "$apacheConfigFile" || \
+        abort "Unable to change config file"
+
+    unitctl "restart" "apache2"
 }
 
 function installIdoitCLI {
@@ -328,6 +341,13 @@ function enableFirewall {
         abort "Unable to configure firewall"
 }
 
+function configureEtckeeper {
+    log "Configure etckeeper"
+
+    cd /etc/ || abort "/etc/ not found"
+    git gc || abort "Unable to pack git repository"
+}
+
 function zeroDisk {
     log "Zero disk"
 
@@ -343,8 +363,24 @@ function zeroDisk {
 function cleanUp {
     log "Clean up"
 
+    log "Remove unnecessary Apache configuration files"
+    rm \
+        /etc/apache2/sites-available/000-default.conf \
+        /etc/apache2/sites-available/default-ssl.conf || \
+        abort "Unable to remove files"
+
     appliance-cleanup || \
         abort "Unable to clean up"
+}
+
+function unitctl {
+    local action="$1"
+    local unit="$2"
+
+    log "${action^} $unit"
+
+    systemctl -q "$action" "${unit}.service" || \
+        abort "Failed to $action $unit"
 }
 
 function setup {

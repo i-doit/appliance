@@ -1,146 +1,82 @@
-#   Contributors welcome!
+# Contributors welcome!
 
 Thank you very much for your interest in this project! There are plenty of ways you can support us. :-)
 
-
-##  Code of Conduct
+## Code of Conduct
 
 We like you to read and follow our [code of conduct](CODE_OF_CONDUCT.md) before contributing. Thank you.
 
-
-##  Use it
+## Use it
 
 The best and (probably) easiest way is to use one of the pre-built virtual appliance. It would be very nice to share your thoughts with us. We love to hear from you.
 
 If you have questions how to use it properly read the [documentation](README.md) carefully.
 
-
-##  Report bugs
+## Report bugs
 
 If you find something strange please report it to [our issue tracker](https://github.com/bheisig/i-doit-appliance/issues).
 
-
-##  Make a wish
+## Make a wish
 
 Of course, there are some features in the pipeline. However, if you have good ideas how to improve this application please let us know! Write a feature request [in our issue tracker](https://github.com/bheisig/i-doit-appliance/issues).
 
+## Setup a build/development environment
 
-##  Setup a build/development environment
-
-If you like to contribute source code, documentation snippets, self-explaining examples or other useful bits, fork this repository, setup the environment and make a pull request.
+If you like to build your own virtual appliance, contribute source code, documentation snippets, self-explaining examples or other useful bits, fork this repository, setup the environment and make a pull request.
 
 ### Hardware requirements
 
 Make sure your system has the power to run several virtual machines at once. You need:
 
-*   >= 2 CPU cores with support for virtualization instructions
-*   >= 8 GByte of free RAM
-*   >= 10 GByte of free space
+-   >= 2 CPU cores with support for virtualization instructions
+-   >= 8 GByte of free RAM
+-   >= 10 GByte of free space
 
-You may run your host as a virtual machine with activated nested paging but a physical hardware should have a better performance.
+You may run your host as a virtual machine with activated nested paging but physical hardware probably has a better performance.
 
 ### Operating system requirements
 
-We recommend to use a GNU/Linux operating system in 64bit flavor. For a Hyper-V compatible virtual appliance you need a Windows host (see below). We use a physical host with an installed **Ubuntu Linux 18.04 LTS 64bit**. All further instructions are suitable for Debian GNU/Linux based operating systems.
+We recommend to use a GNU/Linux operating system in 64bit flavor. For a Hyper-V compatible virtual appliance you need a Windows host (see below). We use a physical host with an installed **Ubuntu Linux 19.94 "disco" 64bit**. All further instructions are suitable for Debian GNU/Linux based operating systems.
 
-### Install distribution packages
+### Install first needed distribution packages
 
-Make sure you have the following distribution packages installed:
-
-~~~
-sudo apt install git build-essential shellcheck ruby ruby-dev wget curl lsb-release zip unzip quemu-utils libdigest-sha-perl
-~~~
-
-### Install packer
-
-Our build environment is based on [Packer](https://packer.io). On their website you find detailed instructions to install Packer on various operating systems. These commands may be out-dated:
+First, we need `git` and `make`:
 
 ~~~ {.bash}
-export PACKER_VERSION="1.3.1"
-wget https://releases.hashicorp.com/packer/"$PACKER_VERSION"/packer_"$PACKER_VERSION"_linux_amd64.zip
-wget https://releases.hashicorp.com/packer/"$PACKER_VERSION"/packer_"$PACKER_VERSION"_SHA256SUMS
-wget https://releases.hashicorp.com/packer/"$PACKER_VERSION"/packer_"$PACKER_VERSION"_SHA256SUMS.sig
-curl https://keybase.io/hashicorp/pgp_keys.asc | gpg --import
-gpg --verify packer_"$PACKER_VERSION"_SHA256SUMS.sig packer_"$PACKER_VERSION"_SHA256SUMS
-shasum -a 256 -c packer_"$PACKER_VERSION"_SHA256SUMS
-unzip packer_"$PACKER_VERSION"_linux_amd64.zip
-sudo mv packer /usr/local/bin/
-rm packer_"$PACKER_VERSION"_linux_amd64.zip packer_"$PACKER_VERSION"_SHA256SUMS packer_"$PACKER_VERSION"_SHA256SUMS.sig
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends git build-essential
 ~~~
-
-
-### Install VirtualBox
-
-To build the appliance for Oracle VirtualBox you need to install it. On their website you find [detailed instructions](https://www.virtualbox.org/wiki/Linux_Downloads). Run these commands as `root`:
-
-~~~ {.bash}
-echo "deb https://download.virtualbox.org/virtualbox/debian $(lsb_release -c -s) contrib" > /etc/apt/sources.list.d/virtualbox.list
-wget https://www.virtualbox.org/download/oracle_vbox_2016.asc
-wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | apt-key add -
-apt-get update
-apt-get install virtualbox-5.2
-~~~
-
-
-### Install VMware
-
-If you want to build the virtual appliance for VMware you'll need:
-
-*   [VMware Workstation Player 14](https://my.vmware.com/de/web/vmware/free#desktop_end_user_computing/vmware_workstation_player/14_0|PLAYER-1411|product_downloads)
-*   [VIX API libraries](https://www.vmware.com/support/developer/vix-api/)
-
-Please follow the download and installation instructions on their website.
-
-**Notice:** You must have a desktop environment because (VMware requires a GUI)
-
-
-### Install Hyper-V
-
-Hyper-V is only available on a Windows host. This Hyper-V setup has been tested:
-
-*   Host system: Microsoft Windows 10
-*   >= 2 CPU cores
-*   >= 4 GByte of free RAM
-*   >= 10 GByte of free space
-*   Hyper-V (of course)
-*   Your user needs to added to the "Hyper-V Administrators" group
-
-
-##  Install InSpec
-
-We use [InSpec](https://inspec.io/) to perform common and some appliance-specific compliance tests. Installation is done by:
-
-~~~ {.bash}
-sudo gem install inspec
-~~~
-
 
 ### Clone repository
 
+Now we clone the repository and change to the new directory:
+
 ~~~ {.bash}
 git clone https://github.com/bheisig/i-doit-appliance.git
+cd i-doit-appliance
 ~~~
 
-If you have a GitHub account create a fork first and then clone the repository.
+### Install environment
 
-After that, change to your cloned repository and do your stuff. Do not forget to commit your changes. When you are done consider to make a pull requests.
+Our build environment is based on [Packer](https://packer.io). To build the virtual appliance the also need Oracle [VirtualBox](https://www.virtualbox.org/) and [VMware Workstation Player](https://vmware.com/). Testing mainly depends on [ShellCheck](https://shellcheck.net/) and [InSpec](https://inspec.io/).
 
-Notice, that any of your contributions merged into this repository will be [licensed under the AGPLv3](LICENSE).
+For a one-liner-to-install-them-all use this:
 
+~~~ {.bash}
+sudo make install
+~~~
 
 ### Verify your host
 
-To make sure you installed and configured all dependencies properly run:
+Make sure all dependencies are installed and configured properly:
 
 ~~~ {.bash}
 make test
 ~~~
 
-
 ## Build virtual appliances
 
 The virtual appliances for VirtualBox and VMware are built on a GNU/Linux host, the one for Hyper-V on a Windows host.
-
 
 ### VirtualBox/VMware
 
@@ -155,8 +91,24 @@ See it in action:
 
 [![asciicast](https://asciinema.org/a/14.png)](https://asciinema.org/a/BWQW0oJljW4w9xqMr41lV6ixt?autoplay=1&speed=10)
 
+## Create distribution packages
+
+After the build process there is one little step before publishing the virtual appliance:
+
+~~~ {.bash}
+make dist
+~~~
 
 ### Hyper-V
+
+Hyper-V is only available on a Windows host. This Hyper-V setup has been tested:
+
+-   Host system: Microsoft Windows 10
+-   >= 2 CPU cores
+-   >= 4 GByte of free RAM
+-   >= 10 GByte of free space
+-   Hyper-V (of course)
+-   Your user needs to added to the "Hyper-V Administrators" group
 
 On a Windows host open a command prompt with administrator rights. Change to the project directory and execute the bat file:
 
@@ -165,31 +117,54 @@ cd C:\path\to\i-doit-appliance
 ./hyper-v.bat
 ~~~
 
+## Pull requests
 
-##  Test virtual appliance
+If you have a GitHub account create a fork and then clone the repository. After that, change to your cloned repository and do your stuff. Do not forget to commit your changes. When you are done consider to make a pull requests.
+
+Notice, that any of your contributions merged into this repository will be [licensed under the AGPLv3](LICENSE).
+
+## Test virtual appliance
 
 On a GNU/Linux host you should test whether the virtual appliance has been built properly. Therefore, you find some shell scripts under `tests/`. These tests can only be performed while virtual appliance has been booted.
 
+## Update your build/development environment
 
-##  Make rules
+Your environment should be up-to-date before building:
+
+~~~ {.bash}
+cd i-doit-appliance/
+git pull
+sudo make update
+make test
+~~~
+
+## Make rules
 
 This project comes with some useful make rules:
 
-| Command                   | Description                                   |
-| ------------------------- | --------------------------------------------- |
-| `make build`              | Build virtual appliances in all flavors       |
-| `make build-virtualbox`   | Build virtual appliance for VirtualBox        |
-| `make build-vmware`       | Build virtual appliance for VMware            |
-| `make clean`              | Clean up project directory                    |
-| `make dist`               | Create distribution packages in all flavors   |
-| `make dist-virtualbox`    | Create distribution package for VirtualBox    |
-| `make dist-vmware`        | Create distribution package for VMware        |
-| `make prepare-host`       | Setup a build/development environment         |
-| `make shellcheck`         | Validate shell scripts                        |
-| `make test`               | Test your environment                         |
+| Command                   | Description                                   | Requires `root`   |
+| ------------------------- | --------------------------------------------- | ----------------- |
+| `make`                    | Run make rule `build`                         | Yes               |
+| `make build`              | Build virtual appliances in all flavors       | No                |
+| `make build-virtualbox`   | Build virtual appliance for VirtualBox        | No                |
+| `make build-vmware`       | Build virtual appliance for VMware            | No                |
+| `make clean`              | Clean up project directory                    | No                |
+| `make dist`               | Create distribution packages in all flavors   | No                |
+| `make dist-virtualbox`    | Create distribution package for VirtualBox    | No                |
+| `make dist-vmware`        | Create distribution package for VMware        | No                |
+| `make install`            | Setup a build/development environment         | Yes               |
+| `make install-inspec`     | Only install InSpec                           | Yes               |
+| `make install-packages`   | Only install distribution packages            | Yes               |
+| `make install-packer`     | Only install Packer                           | Yes               |
+| `make install-shellcheck` | Only install ShellCheck                       | Yes               |
+| `make install-virtualbox` | Only install VirtualBox                       | Yes               |
+| `make install-vmware`     | Only install VMware Workstation Player        | Yes               |
+| `make list-binaries`      | List paths to needed binaries                 | No                |
+| `make shellcheck`         | Validate shell scripts                        | No                |
+| `make test`               | Test your environment                         | No                |
+| `make update`             | Update build/development environment          | Yes               |
 
-
-##  Repository
+## Repository
 
 ~~~ {.bash}
 .
@@ -200,7 +175,7 @@ This project comes with some useful make rules:
 ├── CHANGELOG.md
 ├── CODE_OF_CONDUCT.md
 ├── CONTRIBUTING.md
-├── hyper-v.bat                     # Build virtual appliance for Hyper-V
+├── deploy                          # Automagically deploy i-doit on virtual machine
 ├── dist                            # Distribution files of virtual appliances
 │   └── *.zip
 ├── docs                            # Documentation
@@ -220,18 +195,16 @@ This project comes with some useful make rules:
 │           └── create-issue-files
 ├── .gitattributes
 ├── .gitignore
+├── http
+│   ├── preseed_stretch_hyper-v.cfg # Used for unattended OS installation on Hyper-V
+│   └── preseed_stretch.cfg         # Used for unattended OS installation
 ├── hyper-v.bat                     # Build virtual appliance for Hyper-V
 ├── inspec_cache                    # Cached InSpec compliance tests
 ├── LICENSE
 ├── Makefile                        # Make rules
-├── packer
-│   ├── http
-│   │   ├── preseed_stretch_hyper-v.cfg # Used for unattended OS installation on Hyper-V
-│   │   └── preseed_stretch.cfg     # Used for unattended OS installation
-│   ├── packer.json                 # Packer configuration file
-│   └── prepare-os                  # Automagically prepare OS
 ├── packer_cache                    # Cache for pre-downloded ISO files
 │   └── *.iso
+├── packer.json                     # Packer configuration file
 ├── README.md
 └── tests                           # Tests
     ├── htaccess                    # Test Apache configuration settings
