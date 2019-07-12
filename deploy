@@ -2,7 +2,7 @@
 
 ##
 ## i-doit virtual appliance
-## Prepare OS
+## Deploy i-doit on OS
 ##
 
 ##
@@ -31,6 +31,7 @@ IFS=$'\n\t'
 
 : "${IVA_USER:="idoit"}"
 : "${IVA_HOSTNAME:="idoitappliance"}"
+: "${MAX_NUMBER_OF_OPEN_FILES:="65535"}"
 
 ##------------------------------------------------------------------------------
 
@@ -57,6 +58,7 @@ function execute {
     ## TODO phive's key handling is too fragile… Expect timeouts:
     #installIdoitCLI
     enableFirewall
+    configureSecurityLimits
     ## Configure etckeeper after most configuration steps are done:
     configureEtckeeper
     zeroDisk
@@ -341,6 +343,23 @@ function enableFirewall {
         abort "Unable to configure firewall"
 }
 
+function configureSecurityLimits {
+    local confFile="/etc/security/limits.d/i-doit.conf"
+
+    log "Configure security limits"
+
+    log "Set max number of open files to $MAX_NUMBER_OF_OPEN_FILES"
+
+    echo \
+        -e "*\tsoft\tnofile\t$MAX_NUMBER_OF_OPEN_FILES" \
+        >> "$confFile" || \
+        abort "Unable to edit file $confFile"
+    echo \
+        -e "*\thard\tnofile\t$MAX_NUMBER_OF_OPEN_FILES" \
+        >> "$confFile" || \
+        abort "Unable to edit file $confFile"
+}
+
 function configureEtckeeper {
     log "Configure etckeeper"
 
@@ -398,8 +417,8 @@ function finish {
 }
 
 function abort {
-    echo -e "$1" 1>&2
-    echo "Operation failed. Please check what is wrong and try again." 1>&2
+    log "$1"
+    log "Operation failed. Please check what is wrong and try again."
     exit 1
 }
 
