@@ -45,6 +45,7 @@ function execute {
     # connection:
     #installGuestAdditions
     configureAPT
+    configureDpkg
     installDebianPackages
     removeDebianPackages
     installIdoit
@@ -103,14 +104,44 @@ function installGuestAdditions {
 }
 
 function configureAPT {
+    local confFile="/etc/apt/apt.conf.d/99_norecommends"
+
     log "Configure APT"
 
-    {
-        echo "APT::Install-Recommends \"false\";"
-        echo "APT::AutoRemove::RecommendsImportant \"false\";"
-        echo "APT::AutoRemove::SuggestsImportant \"false\";"
-    } > /etc/apt/apt.conf.d/99_norecommends || \
+    cat << EOF > "$confFile" || \
+        abort "Unable to edit file $confFile"
+APT::Install-Recommends "false";
+APT::AutoRemove::RecommendsImportant "false";
+APT::AutoRemove::SuggestsImportant "false";
+Dir::Cache {
+    srcpkgcache "";
+    pkgcache "";
+}
+EOF
+}
+
+function configureDpkg {
+    log "Configure dkpg"
+    cat << EOF > /etc/dpkg/dpkg.cfg.d/01_i-doit || \
         abort "Unable to edit file"
+path-exclude /usr/share/doc/*
+# we need to keep copyright files for legal reasons
+path-include /usr/share/doc/*/copyright
+path-exclude /usr/share/man/*
+path-exclude /usr/share/groff/*
+path-exclude /usr/share/info/*
+# lintian stuff is small, but really unnecessary
+path-exclude /usr/share/lintian/*
+path-exclude /usr/share/linda/*
+# translations
+path-exclude /usr/share/locale/*
+path-include /usr/share/locale/en*
+path-include /usr/share/locale/de*
+path-include /usr/share/locale/es*
+path-include /usr/share/locale/ja*
+path-include /usr/share/locale/fr*
+path-include /usr/share/locale/zh*
+EOF
 }
 
 function installDebianPackages {
@@ -386,6 +417,32 @@ function cleanUp {
     rm \
         /etc/apache2/sites-available/000-default.conf \
         /etc/apache2/sites-available/default-ssl.conf || \
+        abort "Unable to remove files"
+
+    log "Remove documentation"
+    find /usr/share/doc -depth -type f ! -name copyright -print0 | xargs rm || \
+        abort "Unable to remove files"
+    find /usr/share/doc -empty -print0 |xargs rmdir || \
+        abort "Unable to remove directories"
+    rm -rf \
+        /usr/share/groff/* \
+        /usr/share/info/* \
+        /usr/share/lintian/* \
+        /usr/share/linda/* \
+        /var/cache/man/* \
+        /usr/share/man/* || \
+        abort "Unable to remove files"
+
+    log "Remove translations"
+    find /usr/share/locale -mindepth 1 -maxdepth 1 \
+        ! -name 'en' \
+        ! -name 'de*' \
+        ! -name 'es*' \
+        ! -name 'ja*' \
+        ! -name 'fr*' \
+        ! -name 'zh*' \
+        -print0 \
+        | xargs rm -r || \
         abort "Unable to remove files"
 
     appliance-cleanup || \
