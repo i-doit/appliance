@@ -74,32 +74,30 @@ URLS["/upload/"]="403"
 URLS["/upload/files/"]="403"
 URLS["/vendor/"]="403"
 URLS["/.htaccess"]="403"
-# Works only with official demo data:
+# Works properly with official demo data:
 URLS["/imports/Excel_to_idoit_Names.csv"]="403"
 
 FAILS=0
 
-##--------------------------------------------------------------------------------------------------
-
 function execute {
-    echo -e "i-doit instance: \e[0;33m$IDOIT_URL\033[0m"
-    echo ""
+    log "i-doit instance: \e[0;33m$IDOIT_URL\033[0m"
+    log ""
 
     for url in "${!URLS[@]}"; do
         testURL "$url" "${URLS[$url]}"
     done
 
-    echo ""
+    log ""
 
     case "$FAILS" in
         0)
-            echo -e "\e[0;32mEverything is fine\033[0m"
+            finish "\e[0;32mEverything is fine\033[0m"
             ;;
         1)
-            echo -e "\e[0;31m1 error found\033[0m"
+            abort "\e[0;31m1 error found\033[0m"
             ;;
         *)
-            echo -e "\e[0;31m$FAILS errors found\033[0m"
+            abort "\e[0;31m$FAILS errors found\033[0m"
             ;;
     esac
 }
@@ -112,9 +110,9 @@ function testURL {
     actualStatusCode="$(curl -o /dev/null --silent --head --write-out '%{http_code}\n' --url "${IDOIT_URL}${url}")"
 
     if [[ "$expectedStatusCode" = "$actualStatusCode" ]]; then
-        echo -e "\e[0;32m✔\033[0m $actualStatusCode ${url}"
+        log "\e[0;32m✔\033[0m $actualStatusCode ${url}"
     else
-        echo -e "\e[0;31m✘\033[0m $actualStatusCode ${url} (expected ${expectedStatusCode})"
+        log "\e[0;31m✘\033[0m $actualStatusCode ${url} (expected ${expectedStatusCode})"
         ((FAILS++))
     fi
 }
@@ -136,9 +134,18 @@ EOF
     exit 0
 }
 
+function finish {
+    log "$1"
+    exit 0
+}
+
 function abort {
-    echo "$1"
+    log "$1"
     exit 1
+}
+
+function log {
+    echo -e "$1"
 }
 
 function testCommand {
@@ -151,9 +158,8 @@ function setup {
 }
 
 if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
-    setup
-
     if [[ -n "$IDOIT_URL" ]]; then
+        setup
         execute
     elif [[ -n "${1:-}" ]]; then
         case "$1" in
@@ -162,10 +168,12 @@ if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
                 ;;
             *)
                 export IDOIT_URL="$1"
+                setup
                 execute
                 ;;
             esac
     else
+        setup
         if [ -t 0 ]; then
             echo -n "Enter URL to i-doit: "
         fi
