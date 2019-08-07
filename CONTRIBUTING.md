@@ -36,7 +36,7 @@ You may run your host as a virtual machine with activated nested paging but phys
 
 ### Operating system requirements
 
-We recommend to use a GNU/Linux operating system in 64bit flavor. For a Hyper-V compatible virtual appliance you need a Windows host (see below). We use a physical host with an installed **Ubuntu Linux 19.94 "disco" 64bit**. All further instructions are suitable for Debian GNU/Linux based operating systems.
+We recommend to use a GNU/Linux operating system in 64bit flavor. For a Hyper-V compatible virtual appliance you need a Windows host (see below). We use a physical host with an installed **Ubuntu Linux 18.04 LTS "bionic" 64bit**. All further instructions are suitable for Debian GNU/Linux based operating systems.
 
 ### Install first needed distribution packages
 
@@ -44,12 +44,12 @@ First, we need `git` and `make`:
 
 ~~~ {.bash}
 sudo apt-get update
-sudo apt-get install -y --no-install-recommends git build-essential
+sudo apt-get install -y --no-install-recommends git make
 ~~~
 
 ### Clone repository
 
-Now we clone the repository and change to the new directory:
+Next, we clone the repository and change to the new directory:
 
 ~~~ {.bash}
 git clone https://github.com/bheisig/i-doit-appliance.git
@@ -150,6 +150,7 @@ This project comes with some useful make rules:
 | `make build-vmware`       | Build virtual appliance for VMware            | No                |
 | `make clean`              | Clean up project directory                    | No                |
 | `make dist`               | Create distribution packages in all flavors   | No                |
+| `make dist-hyper-v`       | Create distribution package for Hyper-V       | No                |
 | `make dist-virtualbox`    | Create distribution package for VirtualBox    | No                |
 | `make dist-vmware`        | Create distribution package for VMware        | No                |
 | `make install`            | Setup a build/development environment         | Yes               |

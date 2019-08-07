@@ -5,7 +5,7 @@ CACHE_DIR ?= packer_cache
 INSPEC_CACHE_DIR ?= inspec_cache
 NAME_PREFIX ?= i-doit-virtual-appliance-debian-10-amd64
 DIST_FILES ?= CHANGELOG.md LICENSE README.md
-PACKER_VERSION ?= 1.4.1
+PACKER_VERSION ?= 1.4.2
 
 all : build
 
@@ -22,7 +22,7 @@ build-vmware :
 	test ! -d $(BUILD_DIR)/$(NAME_PREFIX)-vmware/
 	packer build --only=vmware packer.json
 
-dist : dist-virtualbox dist-vmware dist-hyper-v
+dist : dist-virtualbox dist-vmware
 
 dist-virtualbox :
 	test -d $(BUILD_DIR)/$(NAME_PREFIX)-virtualbox/
@@ -80,7 +80,7 @@ install-packer :
 		packer_$(PACKER_VERSION)_SHA256SUMS.sig
 
 install-virtualbox :
-	echo "deb https://download.virtualbox.org/virtualbox/debian stretch contrib" > \
+	echo "deb https://download.virtualbox.org/virtualbox/debian $(shell lsb_release -a -s) contrib" > \
 		/etc/apt/sources.list.d/virtualbox.list
 	wget https://www.virtualbox.org/download/oracle_vbox_2016.asc
 	wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | \
@@ -91,6 +91,8 @@ install-virtualbox :
 		virtualbox-6.0
 
 install-vmware :
+	apt-get install -y --no-install-recommends \
+		libxinerama1 libxtst6
 	wget https://www.vmware.com/go/getworkstation-linux
 	yes "" | sh getworkstation-linux --console --required --eulas-agreed
 	rm getworkstation-linux
@@ -107,7 +109,8 @@ install-inspec :
 	curl -sSL https://rvm.io/mpapis.asc | gpg2 --import -
 	curl -sSL https://rvm.io/pkuczynski.asc | gpg2 --import -
 	curl -sSL https://get.rvm.io | bash -s stable
-	source /etc/profile.d/rvm.sh && rvm install ruby-head
+	usermod -aG rvm $(shell whoami)
+	source /etc/profile.d/rvm.sh && rvm install ruby-2.6
 	source /etc/profile.d/rvm.sh && rvm use 2.6
 	source /etc/profile.d/rvm.sh && gem install inspec-bin
 
