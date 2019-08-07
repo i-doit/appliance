@@ -142,30 +142,31 @@ make test
 
 This project comes with some useful make rules:
 
-| Command                   | Description                                   | Requires `root`   |
-| ------------------------- | --------------------------------------------- | ----------------- |
-| `make`                    | Run make rule `build`                         | Yes               |
-| `make build`              | Build virtual appliances in all flavors       | No                |
-| `make build-virtualbox`   | Build virtual appliance for VirtualBox        | No                |
-| `make build-vmware`       | Build virtual appliance for VMware            | No                |
-| `make clean`              | Clean up project directory                    | No                |
-| `make dist`               | Create distribution packages in all flavors   | No                |
-| `make dist-hyper-v`       | Create distribution package for Hyper-V       | No                |
-| `make dist-virtualbox`    | Create distribution package for VirtualBox    | No                |
-| `make dist-vmware`        | Create distribution package for VMware        | No                |
-| `make install`            | Setup a build/development environment         | Yes               |
-| `make install-inspec`     | Only install InSpec                           | Yes               |
-| `make install-packages`   | Only install distribution packages            | Yes               |
-| `make install-packer`     | Only install Packer                           | Yes               |
-| `make install-shellcheck` | Only install ShellCheck                       | Yes               |
-| `make install-virtualbox` | Only install VirtualBox                       | Yes               |
-| `make install-vmware`     | Only install VMware Workstation Player        | Yes               |
-| `make list-binaries`      | List paths to needed binaries                 | No                |
-| `make lint-markdown`      | Validate markdown files                       | No                |
-| `make lint-shell`         | Validate shell scripts                        | No                |
-| `make lint-yaml`          | Validate YAML files                           | No                |
-| `make test`               | Test your environment                         | No                |
-| `make update`             | Update build/development environment          | Yes               |
+| Command                       | Description                                   | Requires `root`   |
+| ----------------------------- | --------------------------------------------- | ----------------- |
+| `make`                        | Run make rule `build`                         | Yes               |
+| `make build`                  | Build virtual appliances in all flavors       | No                |
+| `make build-virtualbox`       | Build virtual appliance for VirtualBox        | No                |
+| `make build-vmware`           | Build virtual appliance for VMware            | No                |
+| `make clean`                  | Clean up project directory                    | No                |
+| `make dist`                   | Create distribution packages in all flavors   | No                |
+| `make dist-hyper-v`           | Create distribution package for Hyper-V       | No                |
+| `make dist-virtualbox`        | Create distribution package for VirtualBox    | No                |
+| `make dist-vmware`            | Create distribution package for VMware        | No                |
+| `make install`                | Setup a build/development environment         | Yes               |
+| `make install-inspec`         | Only install InSpec                           | No                |
+| `make install-node-moules`    | Only install Node modules                     | Yes               |
+| `make install-packages`       | Only install distribution packages            | Yes               |
+| `make install-packer`         | Only install Packer                           | Yes               |
+| `make install-shellcheck`     | Only install ShellCheck                       | Yes               |
+| `make install-virtualbox`     | Only install VirtualBox                       | Yes               |
+| `make install-vmware`         | Only install VMware Workstation Player        | Yes               |
+| `make list-binaries`          | List paths to needed binaries                 | No                |
+| `make lint-markdown`          | Validate markdown files                       | No                |
+| `make lint-shell`             | Validate shell scripts                        | No                |
+| `make lint-yaml`              | Validate YAML files                           | No                |
+| `make test`                   | Test your environment                         | No                |
+| `make update`                 | Update build/development environment          | Yes               |
 
 ## Repository
 

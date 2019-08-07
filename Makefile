@@ -54,13 +54,13 @@ dist-hyper-v :
 	mkdir -p $(DIST_DIR)/
 	mv $(BUILD_DIR)/$(NAME_PREFIX)-hyper-v.zip $(DIST_DIR)/
 
-install : install-packages install-packer install-virtualbox install-vmware install-shellcheck install-inspec
+install : install-packages install-packer install-virtualbox install-vmware install-shellcheck install-inspec install-node-modules
 
 install-packages :
 	apt-get update
 	apt-get install -y --no-install-recommends \
 		apt-transport-https curl gnupg2 libdigest-sha-perl \
-		lsb-release qemu-utils unzip wget zip
+		lsb-release npm qemu-utils unzip wget zip
 
 install-packer :
 	wget https://releases.hashicorp.com/packer/$(PACKER_VERSION)/packer_$(PACKER_VERSION)_linux_amd64.zip
@@ -114,6 +114,9 @@ install-inspec :
 	source /etc/profile.d/rvm.sh && rvm use 2.6
 	source /etc/profile.d/rvm.sh && gem install inspec-bin
 
+install-node-modules :
+	npm install
+
 update :
 	apt-get update
 	apt-get upgrade -y
@@ -124,6 +127,7 @@ update :
 	cabal install --global ShellCheck
 	rvm get stable
 	gem update
+	npm update
 
 clean :
 	test -n $(BUILD_DIR) && \
