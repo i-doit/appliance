@@ -161,7 +161,9 @@ This project comes with some useful make rules:
 | `make install-virtualbox` | Only install VirtualBox                       | Yes               |
 | `make install-vmware`     | Only install VMware Workstation Player        | Yes               |
 | `make list-binaries`      | List paths to needed binaries                 | No                |
-| `make shellcheck`         | Validate shell scripts                        | No                |
+| `make lint-markdown`      | Validate markdown files                       | No                |
+| `make lint-shell`         | Validate shell scripts                        | No                |
+| `make lint-yaml`          | Validate YAML files                           | No                |
 | `make test`               | Test your environment                         | No                |
 | `make update`             | Update build/development environment          | Yes               |
 

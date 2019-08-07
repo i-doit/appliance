@@ -139,7 +139,10 @@ clean :
 		test -d $(INSPEC_CACHE_DIR)/ && \
 		rm -r $(INSPEC_CACHE_DIR)/
 
-shellcheck :
+lint-markdown :
+	./node_modules/.bin/remark . .github/ --frail --ignore-path .gitignore
+
+lint-shell :
 	shellcheck bin/appliance-about
 	shellcheck bin/appliance-cleanup
 	shellcheck bin/appliance-menu
@@ -151,6 +154,9 @@ shellcheck :
 	shellcheck bin/appliance-update
 	shellcheck etc/network/if-up.d/create-issue-files
 	shellcheck deploy
+
+lint-yaml :
+	./node_modules/.bin/yamllint *.yml *.yaml .*.yml .*.yaml
 
 test :
 	bash --version

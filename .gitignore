@@ -2,3 +2,5 @@ builds/
 dist/
 packer_cache/
 inspec_cache/
+node_modules/
+package-lock.json
