@@ -1,4 +1,4 @@
-#   Firewall
+# Firewall
 
 The virtual appliance comes with a pre-installed host-based firewall called [ufw (uncomplicated firewall)](https://wiki.debian.org/Uncomplicated%20Firewall%20%28ufw%29). It's a command-line frontend for iptables/netfilter and easy to use.
 

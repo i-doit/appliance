@@ -1,4 +1,4 @@
-#   Secure Web server
+# Secure Web server
 
 As you know your CMDB contains sensitive data no 3rd-party should ever have access to – even from your local network. To harden this virtual appliance you _should_ enforce HTTPS for all clients (Web browser and 3rd-party tools). All non-secure connections will be redirected to a secure connection.
 
@@ -6,15 +6,13 @@ A quick win is your Web server also can switch to the new and significant faster
 
 **Notice:** After enabling these settings only modern Web browsers and 3rd-party tools are able to connect to i-doit via HTTPS. So please keep your software applications and libraries up-to-date.
 
-
-##  Copy certificates
+## Copy certificates
 
 First step is to copy your X.509-based certificate file (including the complete intermediate certificate chain) and the private key file to `/etc/ssl/`.
 
 **Notice:** We do not provide pre-generated certificates. Please use your own certificate authority (CA) to generate them or try a well-known CA like [Let's Encrypt](https://letsencrypt.org/).
 
-
-##  Change Apache settings
+## Change Apache settings
 
 On the command-line edit the file `/etc/apache2/sites-available/i-doit-secure.conf` with `root` rights:
 
@@ -32,8 +30,7 @@ An optional extra step to anonymize Apache's access logs. Un-comment the setting
 
 If you're unsure what each setting mean refer to the [Apache Web server documentation](https://httpd.apache.org/docs/2.4/en/).
 
-
-##  Enable settings
+## Enable settings
 
 Replace the pre-defined non-secure settings with these settings and restart Apache Web server:
 
@@ -49,14 +46,13 @@ sudo systemctl restart apache2.server
 
 Make sure no error occurs.
 
-
-##  Does it work?
+## Does it work?
 
 Now comes the exciting part: Does everything smoothly?
 
-1. If you open i-doit in your favorite Web browser insecurely with `http://` you should be redirected to `https://` automagically.
-2. Take a deeper look at what information your Web browser provides about the connection to i-doit. There should be no warnings.
-3. For command-line lovers try out these commands:
+1.  If you open i-doit in your favorite Web browser insecurely with `http://` you should be redirected to `https://` automagically.
+2.  Take a deeper look at what information your Web browser provides about the connection to i-doit. There should be no warnings.
+3.  For command-line lovers try out these commands:
 
 ~~~ {.bash}
 curl http://cmdb.example.com/ --head
