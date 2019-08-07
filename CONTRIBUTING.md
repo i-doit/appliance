@@ -103,12 +103,13 @@ make dist
 
 Hyper-V is only available on a Windows host. This Hyper-V setup has been tested:
 
--   Host system: Microsoft Windows 10
+-   Microsoft Windows Server 2016
 -   >= 2 CPU cores
 -   >= 4 GByte of free RAM
 -   >= 10 GByte of free space
 -   Hyper-V (of course)
 -   Your user needs to added to the "Hyper-V Administrators" group
+-   Download the latest packer.exe and copy it into the project directory
 
 On a Windows host open a command prompt with administrator rights. Change to the project directory and execute the bat file:
 
