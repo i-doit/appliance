@@ -87,7 +87,7 @@
             ],
             "boot_wait": "10s",
             "cpus": "{{user `cpus`}}",
-            "disk_type_id": 0,
+            "disk_type_id": 4,
             "disk_size": "{{user `disk_size`}}",
             "guest_os_type": "debian9-64",
             "headless": true,
@@ -103,10 +103,8 @@
             "ssh_port": 22,
             "ssh_username": "{{user `ssh_username`}}",
             "ssh_wait_timeout": "10000s",
-            "tools_upload_flavor": "linux",
             "vm_name": "{{user `vm_name`}}-vmware",
-            "version": "16",
-            "vnc_disable_password": true
+            "version": "9"
         },
         {
             "name": "hyper-v",
@@ -175,13 +173,6 @@
             "type": "shell",
             "execute_command": "echo '{{user `ssh_password`}}' | {{.Vars}} IVA_USER=\"{{user `ssh_username`}}\" IVA_HOSTNAME=\"{{user `hostname`}}\" sudo -E -S bash '{{.Path}}'",
             "script": "./deploy"
-        }
-    ],
-    "post-processors": [
-        {
-            "type": "checksum",
-            "checksum_types": ["sha512"],
-            "output": "builds/{{user `vm_name`}}-{{.BuildName}}/{{user `vm_name`}}-{{.BuildName}}-{{.ChecksumType}}.checksum"
         }
     ]
 }

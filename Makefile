@@ -1,7 +1,6 @@
 SHELL := /bin/bash
 BUILD_DIR ?= builds
 DIST_DIR ?= dist
-CACHE_DIR ?= packer_cache
 INSPEC_CACHE_DIR ?= inspec_cache
 NAME_PREFIX ?= i-doit-virtual-appliance-debian-10-amd64
 DIST_FILES ?= CHANGELOG.md LICENSE README.md
@@ -54,6 +53,10 @@ dist-hyper-v :
 	mkdir -p $(DIST_DIR)/
 	mv $(BUILD_DIR)/$(NAME_PREFIX)-hyper-v.zip $(DIST_DIR)/
 
+checksums :
+	test -d $(DIST_DIR)
+	cd $(DIST_DIR) && sha256sum * > CHECKSUMS
+
 install : install-packages install-packer install-virtualbox install-vmware install-shellcheck install-inspec install-node-modules
 
 install-packages :
@@ -80,7 +83,7 @@ install-packer :
 		packer_$(PACKER_VERSION)_SHA256SUMS.sig
 
 install-virtualbox :
-	echo "deb https://download.virtualbox.org/virtualbox/debian $(shell lsb_release -a -s) contrib" > \
+	echo "deb https://download.virtualbox.org/virtualbox/debian $(shell lsb_release -c -s) contrib" > \
 		/etc/apt/sources.list.d/virtualbox.list
 	wget https://www.virtualbox.org/download/oracle_vbox_2016.asc
 	wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | \
@@ -92,7 +95,7 @@ install-virtualbox :
 
 install-vmware :
 	apt-get install -y --no-install-recommends \
-		libxinerama1 libxtst6
+		libxinerama1 libxtst6 libxt6 zlib1g libxrender1 libx11-dev
 	wget https://www.vmware.com/go/getworkstation-linux
 	yes "" | sh getworkstation-linux --console --required --eulas-agreed
 	rm getworkstation-linux
@@ -136,9 +139,6 @@ clean :
 	test -n $(DIST_DIR) && \
 		test -d $(DIST_DIR)/ && \
 		rm -r $(DIST_DIR)/
-	test -n $(CACHE_DIR) && \
-		test -d $(CACHE_DIR)/ && \
-		rm -r $(CACHE_DIR)/
 	test -n $(INSPEC_CACHE_DIR) && \
 		test -d $(INSPEC_CACHE_DIR)/ && \
 		rm -r $(INSPEC_CACHE_DIR)/
