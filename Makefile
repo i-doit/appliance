@@ -5,6 +5,7 @@ INSPEC_CACHE_DIR ?= inspec_cache
 NAME_PREFIX ?= i-doit-virtual-appliance-debian-10-amd64
 DIST_FILES ?= CHANGELOG.md LICENSE README.md
 PACKER_VERSION ?= 1.4.2
+USER=$(shell who am i | awk '{print $1}')
 
 all : build
 
@@ -63,7 +64,8 @@ install-packages :
 	apt-get update
 	apt-get install -y --no-install-recommends \
 		apt-transport-https curl gnupg2 libdigest-sha-perl \
-		lsb-release npm qemu-utils unzip wget zip
+		lsb-release npm qemu-utils software-properties-common unzip \
+		wget zip
 
 install-packer :
 	wget https://releases.hashicorp.com/packer/$(PACKER_VERSION)/packer_$(PACKER_VERSION)_linux_amd64.zip
@@ -109,13 +111,14 @@ install-shellcheck :
 	cabal install --global ShellCheck
 
 install-inspec :
-	curl -sSL https://rvm.io/mpapis.asc | gpg2 --import -
-	curl -sSL https://rvm.io/pkuczynski.asc | gpg2 --import -
-	curl -sSL https://get.rvm.io | bash -s stable
-	usermod -aG rvm $(shell whoami)
+	apt-add-repository -y ppa:rael-gc/rvm
+	apt-get update
+	apt-get install rvm
+	usermod -aG rvm $(USER)
 	source /etc/profile.d/rvm.sh && rvm install ruby-2.6
 	source /etc/profile.d/rvm.sh && rvm use 2.6
 	source /etc/profile.d/rvm.sh && gem install inspec-bin
+	chown $(USER):$(USER) -R /home/$(USER)/.rvm/
 
 install-node-modules :
 	npm install
@@ -126,22 +129,16 @@ update :
 	apt-get autoremove -y
 	apt-get clean -y
 	cabal update
-	cabal install --global cabal-install
-	cabal install --global ShellCheck
+	cabal install cabal-install
+	cabal install ShellCheck
 	rvm get stable
 	gem update
 	npm update
 
 clean :
-	test -n $(BUILD_DIR) && \
-		test -d $(BUILD_DIR)/ && \
-		rm -r $(BUILD_DIR)/
-	test -n $(DIST_DIR) && \
-		test -d $(DIST_DIR)/ && \
-		rm -r $(DIST_DIR)/
-	test -n $(INSPEC_CACHE_DIR) && \
-		test -d $(INSPEC_CACHE_DIR)/ && \
-		rm -r $(INSPEC_CACHE_DIR)/
+	rm -rf ./$(BUILD_DIR)/
+	rm -rf ./$(DIST_DIR)/
+	rm -rf ./$(INSPEC_CACHE_DIR)/
 
 lint-markdown :
 	./node_modules/.bin/remark . .github/ --frail --ignore-path .gitignore
@@ -175,25 +172,27 @@ test :
 	ruby --version
 	rvm --version
 	gem --version
+	npm --version
 	inspec --version
 	sha256sum --version
 	lsmod | grep -i -E "vmnet|vmmon"
 	cat /proc/cpuinfo | grep -i -E "vmx|svm"
 
 list-binaries :
-	which bash
-	which cabal
-	which curl
-	which gem
-	which gpg
-	which inspec
-	which packer
-	which ruby
-	which rvm
-	which sha256sum
-	which shellcheck
-	which unzip
-	which vboxmanage
-	which vmware-installer
-	which wget
-	which zip
+	command -v bash
+	command -v cabal
+	command -v curl
+	command -v gem
+	command -v gpg
+	command -v inspec
+	command -v npm
+	command -v packer
+	command -v ruby
+	command -v rvm
+	command -v sha256sum
+	command -v shellcheck
+	command -v unzip
+	command -v vboxmanage
+	command -v vmware-installer
+	command -v wget
+	command -v zip
