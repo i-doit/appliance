@@ -103,8 +103,8 @@
             "ssh_port": 22,
             "ssh_username": "{{user `ssh_username`}}",
             "ssh_wait_timeout": "10000s",
-            "vm_name": "{{user `vm_name`}}-vmware",
-            "version": "9"
+            "version": "13",
+            "vm_name": "{{user `vm_name`}}-vmware"
         },
         {
             "name": "hyper-v",
