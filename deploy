@@ -161,7 +161,6 @@ function installDebianPackages {
     apt-get -qq --yes install \
         apt-listchanges \
         atop \
-        auditd \
         build-essential \
         dialog \
         dirmngr \
@@ -188,6 +187,10 @@ function installDebianPackages {
         unzip \
         vim \
         zsh || \
+        abort "Unable to install required Debian packages"
+
+    apt-get -qq --yes install \
+        auditd || \
         abort "Unable to install required Debian packages"
 }
 
