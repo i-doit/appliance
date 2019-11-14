@@ -1,0 +1,191 @@
+#!/bin/bash
+
+##
+## i-doit virtual appliance
+## Build and deploy virtual machines in CI/CD environment
+##
+
+##
+## Copyright (C) 2018-19 synetics GmbH, <https://i-doit.com/>
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Affero General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+## GNU Affero General Public License for more details.
+##
+## You should have received a copy of the GNU Affero General Public License
+## along with this program. If not, see <http://www.gnu.org/licenses/>.
+##
+
+set -euo pipefail
+#IFS=$'\n\t'
+
+##
+## Configuration
+##
+
+: "${BUILD_HOST:=""}"
+: "${PROJECT_DIR:=""}"
+: "${DOWNLOAD_DIR:=""}"
+: "${GIT_REPO:="https://github.com/bheisig/i-doit-appliance.git"}"
+: "${APPLIANCE_FLAVORS:="virtualbox vmware"}"
+: "${DRY_RUN:="0"}"
+
+function execute {
+    prepareBuildHost || abort "Job failed"
+    buildAppliances || abort "Job failed"
+    packDists || abort "Job failed"
+    createChecksums || abort "Job failed"
+    publish || abort "Job failed"
+}
+
+function prepareBuildHost {
+    log "Prepare host"
+
+    runCommandOnBuildHost "command -v git" || return 1
+    runCommandOnBuildHost "command -v make" || return 1
+
+    if runCommandOnBuildHost "test -d $PROJECT_DIR"; then
+        runCommandOnBuildHost "git -C $PROJECT_DIR pull" || return 1
+        cleanUp || return 1
+    else
+        log "Directory \"${PROJECT_DIR}\" on host \"${BUILD_HOST}\" does not exist"
+        cloneProject || return 1
+    fi
+
+    # TODO: ruby/cabal/npm not working in non-interactive shells!
+    #runCommandOnBuildHost "make -C $PROJECT_DIR test" || return 1
+}
+
+function cloneProject {
+    log "Clone from repository \"${GIT_REPO}\""
+    runCommandOnBuildHost "git clone $GIT_REPO $PROJECT_DIR" || \
+        return 1
+}
+
+function cleanUp {
+    log "Clean up"
+    runCommandOnBuildHost "make -C $PROJECT_DIR clean" || \
+        return 1
+}
+
+function wait {
+    local seconds="$1"
+    log "Wait for $seconds seconds"
+    sleep "$seconds"
+}
+
+function buildAppliances {
+    for flavor in $APPLIANCE_FLAVORS; do
+        buildAppliance "$flavor" || return 1
+    done
+}
+
+function buildAppliance {
+    local flavor="$1"
+    log "Build appliance flavor \"${flavor}\""
+    runCommandOnBuildHost "make -C $PROJECT_DIR build-$flavor" || \
+        return 1
+}
+
+function packDists {
+    for flavor in $APPLIANCE_FLAVORS; do
+        packDist "$flavor" || return 1
+    done
+}
+
+function packDist {
+    local flavor="$1"
+    log "Pack distribution package for appliance flavor \"${flavor}\""
+    runCommandOnBuildHost "make -C $PROJECT_DIR dist-$flavor" || return 1
+}
+
+function createChecksums {
+    log "Create checksums"
+    runCommandOnBuildHost \
+        "cd ${DOWNLOAD_DIR}/ && rm -f ./CHECKSUMS && sha256sum * > ./CHECKSUMS" || \
+        return 1
+}
+
+function publish {
+    runCommandOnBuildHost "mkdir -p ${DOWNLOAD_DIR}/" || return 1
+    runCommandOnBuildHost "cp ${PROJECT_DIR}/dist/* ${DOWNLOAD_DIR}/" || return 1
+}
+
+function runCommandOnBuildHost {
+    local command="$1"
+
+    runCommandOnHost "$BUILD_HOST" "$command" || return 1
+
+    return 0
+}
+
+function runCommandOnHost {
+    local hostname="$1"
+    local command="$2"
+
+    log "Run remotely on ${hostname}:"
+    log "> $command"
+
+    test "$DRY_RUN" -gt 0 && return 0
+
+    # shellcheck disable=SC2029
+    if ssh "$hostname" "$command"; then
+        return 0
+    else
+        log "Command failed with exit code $?"
+        return 1
+    fi
+}
+
+function setUp {
+    test "$(whoami)" != root || \
+        log "Please do not run this script as root user"
+
+    test -n "$BUILD_HOST" || \
+        abort "Environment variable \"BUILD_HOST\" is missing"
+
+    test -n "$PROJECT_DIR" || \
+        abort "Environment variable \"PROJECT_DIR\" is missing"
+
+    test -n "$DOWNLOAD_DIR" || \
+        abort "Environment variable \"DOWNLOAD_DIR\" is missing"
+
+    test -n "$APPLIANCE_FLAVORS" || \
+        abort "Environment variable \"APPLIANCE_FLAVOR\" is missing"
+
+    test -n "$GIT_REPO" || \
+        abort "Environment variable \"GIT_REPO\" is missing"
+
+    for command in "ssh"; do
+        command -v "$command" || \
+            abort "Command \"${command}\" is missing"
+    done
+}
+
+function tearDown {
+    cleanUp
+}
+
+function finish {
+    log "Done. Have fun :-)"
+    exit 0
+}
+
+function abort {
+    log "$1"
+    exit 1
+}
+
+function log {
+    echo -e "$1"
+}
+
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
+    setUp && execute && tearDown && finish
+fi

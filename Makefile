@@ -154,6 +154,7 @@ lint-shell :
 	shellcheck bin/appliance-menu-tools
 	shellcheck bin/appliance-update
 	shellcheck etc/network/if-up.d/create-issue-files
+	shellcheck build
 	shellcheck deploy
 
 lint-yaml :
