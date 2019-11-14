@@ -2,6 +2,8 @@
 
 Pre-configured virtual machines (VM) for i-doit
 
+[![Build Status](https://travis-ci.org/bheisig/i-doit-appliance.svg?branch=master)](https://travis-ci.org/bheisig/i-doit-appliance)
+
 ## About
 
 [i-doit](https://i-doit.com) is a software application for IT documentation and a CMDB (Configuration Management Database). This application is very useful to collect all your knowledge about the IT infrastructure you are dealing with. i-doit is a Web application and [has an powerful API](https://kb.i-doit.com/pages/viewpage.action?pageId=37355644) which is very useful to automate your infrastructure.

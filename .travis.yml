@@ -1,0 +1,26 @@
+os: bionic
+
+language: node_js
+
+node_js:
+  - "lts/*"
+
+before_install:
+  - npm i -g npm@6
+  - npm install
+  - export SHELLCHECK_VERSION="latest"
+  - wget -qO- "https://storage.googleapis.com/shellcheck/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz" | tar -xJv
+  - sudo cp "shellcheck-${SHELLCHECK_VERSION}/shellcheck" /usr/local/bin/
+  - shellcheck --version
+
+script:
+  - npm audit
+  - npm doctor
+  - make lint-markdown
+  - make lint-shell
+  - make lint-yaml
+
+notifications:
+  email:
+    on_success: never
+    on_failure: always
