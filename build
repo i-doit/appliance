@@ -47,8 +47,9 @@ function execute {
 function prepareBuildHost {
     log "Prepare host"
 
-    runCommandOnBuildHost "command -v git" || return 1
-    runCommandOnBuildHost "command -v make" || return 1
+    for command in "curl git make packer"; do
+        runCommandOnBuildHost "command -v $command" || return 1
+    done
 
     if runCommandOnBuildHost "test -d $PROJECT_DIR"; then
         runCommandOnBuildHost "git -C $PROJECT_DIR pull" || return 1

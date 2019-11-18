@@ -156,6 +156,7 @@ lint-shell :
 	shellcheck etc/network/if-up.d/create-issue-files
 	shellcheck build
 	shellcheck deploy
+	shellcheck update
 
 lint-yaml :
 	./node_modules/.bin/yamllint *.yml *.yaml .*.yml .*.yaml
