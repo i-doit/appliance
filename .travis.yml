@@ -16,6 +16,7 @@ before_install:
 script:
   - npm audit
   - npm doctor
+  - make lint-json
   - make lint-markdown
   - make lint-shell
   - make lint-yaml

@@ -140,6 +140,9 @@ clean :
 	rm -rf ./$(DIST_DIR)/
 	rm -rf ./$(INSPEC_CACHE_DIR)/
 
+lint-json :
+	./node_modules/.bin/jsonlint packer.json --quiet
+
 lint-markdown :
 	./node_modules/.bin/remark . .github/ --frail --ignore-path .gitignore
 
