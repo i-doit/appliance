@@ -1,4 +1,4 @@
-os: bionic
+os: linux
 
 language: node_js
 
@@ -6,7 +6,7 @@ node_js:
   - "lts/*"
 
 before_install:
-  - npm i -g npm@6
+  - npm i -g npm
   - npm install
   - export SHELLCHECK_VERSION="latest"
   - wget -qO- "https://storage.googleapis.com/shellcheck/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz" | tar -xJv

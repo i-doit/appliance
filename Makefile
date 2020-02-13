@@ -144,7 +144,7 @@ lint-json :
 	./node_modules/.bin/jsonlint packer.json --quiet
 
 lint-markdown :
-	./node_modules/.bin/remark . .github/ --frail --ignore-path .gitignore
+	./node_modules/.bin/remark . .github/ --ignore-path .gitignore
 
 lint-shell :
 	shellcheck bin/appliance-about
