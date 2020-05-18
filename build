@@ -47,7 +47,7 @@ function execute {
 function prepareBuildHost {
     log "Prepare host"
 
-    for command in "curl git make packer"; do
+    for command in curl git make packer; do
         runCommandOnBuildHost "command -v $command" || return 1
     done
 
@@ -163,10 +163,8 @@ function setUp {
     test -n "$GIT_REPO" || \
         abort "Environment variable \"GIT_REPO\" is missing"
 
-    for command in "ssh"; do
-        command -v "$command" || \
-            abort "Command \"${command}\" is missing"
-    done
+    command -v ssh || \
+        abort "Command \"${command}\" is missing"
 }
 
 function tearDown {
