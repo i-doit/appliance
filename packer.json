@@ -4,7 +4,7 @@
         "ssh_username": "idoit",
         "ssh_password": "idoit",
         "root_password": "idoit",
-        "iso": "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-10.3.0-amd64-netinst.iso",
+        "iso": "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-10.4.0-amd64-netinst.iso",
         "checksum": "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA512SUMS",
         "vm_name": "i-doit-virtual-appliance-debian-10-amd64",
         "cpus": "2",
