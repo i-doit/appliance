@@ -132,7 +132,7 @@
                 "passwd/user-password-again=\"{{user `ssh_password`}}\" <wait>",
                 "<enter><wait>"
             ],
-            "boot_wait": "10s",
+            "boot_wait": "20s",
             "communicator": "ssh",
             "cpus": "{{user `cpus`}}",
             "disk_size": "{{user `disk_size`}}",
@@ -150,7 +150,9 @@
             "output_directory": "builds/{{user `vm_name`}}-hyper-v",
             "shutdown_command": "echo '/sbin/shutdown -h -P now' > /tmp/shutdown.sh; echo '{{user `ssh_password`}}' | sudo -S sh '/tmp/shutdown.sh'",
             "shutdown_timeout": "60s",
-            "vm_name": "{{user `vm_name`}}-hyper-v"
+            "vm_name": "{{user `vm_name`}}-hyper-v",
+            "mac_address": "0000deadbeef",
+            "ssh_host": "10.10.60.55"
         }
     ],
     "provisioners": [

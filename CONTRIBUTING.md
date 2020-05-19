@@ -108,8 +108,10 @@ Hyper-V is only available on a Windows host. This Hyper-V setup has been tested:
 -   >= 4 GByte of free RAM
 -   >= 10 GByte of free space
 -   Hyper-V (of course)
--   Your user needs to added to the "Hyper-V Administrators" group
+-   An external VM switch should be configured in Hyper-V
+-   Your user needs to be added to the "Hyper-V Administrators" group
 -   Download the latest packer.exe and copy it into the project directory
+-   Because there are known issues in packer to determine the VM's IP address we explicitly set both a MAC address and an IP address in `packer.json`. Based on the MAC address the VM gets this IP address by a DHCP reservation.
 
 On a Windows host open a command prompt with administrator rights. Change to the project directory and execute the bat file:
 
