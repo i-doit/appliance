@@ -117,13 +117,13 @@ function runVMwareCommand {
 
 function wait {
     local seconds="$1"
-    log "Wait for $1 seconds"
+    log "Wait for $seconds seconds"
     sleep "$seconds"
 }
 
 function cleanUpBuildHost {
     runCommandOnBuildHost \
-        "powershell Remove-Item ${WIN_PROJECT_DIR} -Recurse -ErrorAction Ignore" || \
+        "powershell Remove-Item ${WIN_PROJECT_DIR} -Recurse -ErrorAction Ignore -Force" || \
         return 1
 }
 
