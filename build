@@ -32,7 +32,7 @@ set -euo pipefail
 : "${BUILD_HOST:=""}"
 : "${PROJECT_DIR:=""}"
 : "${DOWNLOAD_DIR:=""}"
-: "${GIT_REPO:="https://github.com/bheisig/i-doit-appliance.git"}"
+: "${GIT_REPO:="https://github.com/i-doit/appliance.git"}"
 : "${APPLIANCE_FLAVORS:="virtualbox vmware"}"
 : "${DRY_RUN:="0"}"
 
