@@ -1,0 +1,224 @@
+#!/bin/bash
+
+##
+## i-doit virtual appliance
+## Build and deploy virtual machines in CI/CD environment
+##
+
+##
+## Copyright (C) 2018-19 synetics GmbH, <https://i-doit.com/>
+##
+## This program is free software: you can redistribute it and/or modify
+## it under the terms of the GNU Affero General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+## GNU Affero General Public License for more details.
+##
+## You should have received a copy of the GNU Affero General Public License
+## along with this program. If not, see <http://www.gnu.org/licenses/>.
+##
+
+set -euo pipefail
+#IFS=$'\n\t'
+
+##
+## Configuration
+##
+
+: "${VM_NAME:="i-doit-virtual-appliance-debian-10-amd64"}"
+: "${FLAVOR:="hyper-v"}"
+: "${BUILD_HOST:=""}"
+: "${PROJECT_DIR:=""}"
+: "${DOWNLOAD_DIR:=""}"
+: "${WIN_HOSTNAME:=""}"
+: "${WIN_PROJECT_DIR:=""}"
+: "${GIT_REPO:="https://github.com/i-doit/appliance.git"}"
+: "${GIT_EXE:="git.exe"}"
+## This VM runs VMware CLI tools:
+: "${VMWARE_HOSTNAME:=""}"
+## Manage VMs:
+: "${VMWARE_CMD:="vmware-cmd"}"
+## Configuration settings for VMware CLI tools:
+: "${VMWARE_CONFIG_FILE:=""}"
+## VM's VMX file for VMware CLI tools:
+: "${VM_VMX:=""}"
+## Give host enough time to boot:
+: "${WAIT_UNTIL_BOOTED:="60"}"
+## Hard or soft off?
+: "${HARD_OR_SOFT_OFF:="soft"}"
+## Enable (1) or disable (0) dry run:
+: "${DRY_RUN:="0"}"
+
+function execute {
+    if ! isVMRunning; then
+        startHost || abort "Job failed"
+        wait "$WAIT_UNTIL_BOOTED"
+    fi
+
+    cloneRepository || abort "Job failed"
+    buildVM || abort "Job failed"
+    fetchVM || abort "Job failed"
+    packDist || abort "Job failed"
+    uploadDist || abort "Job failed"
+    publish || abort "Job failed"
+    createChecksums || abort "Job failed"
+    cleanUpBuildHost || abort "Job failed"
+    stopHost || abort "Job failed"
+}
+
+function isVMRunning {
+    local state=""
+
+    state="$(runVMwareCommand "$VM_VMX getstate" |& tee /dev/tty | tail -n1)"
+
+    if [[ "$state" = "getstate() = on" ]]; then
+        return 0
+    fi
+
+    return 1
+}
+
+function startHost {
+    log "Start $WIN_HOSTNAME"
+
+    runVMwareCommand \
+        "$VM_VMX start" || \
+        return 1
+
+    return 0
+}
+
+function stopHost {
+    log "Stop $WIN_HOSTNAME"
+
+    runVMwareCommand \
+        "$VM_VMX stop $HARD_OR_SOFT_OFF" || \
+        return 1
+
+    return 0
+}
+
+function runVMwareCommand {
+    local command="$1"
+
+    runCommandOnHost \
+        "$VMWARE_HOSTNAME" \
+        "$VMWARE_CMD --config $VMWARE_CONFIG_FILE $command" || \
+        return 1
+
+    return 0
+}
+
+function wait {
+    local seconds="$1"
+    log "Wait for $1 seconds"
+    sleep "$seconds"
+}
+
+function cleanUpBuildHost {
+    runCommandOnBuildHost \
+        "rmdir /Q /S ${WIN_PROJECT_DIR}" || \
+        return 1
+}
+
+function cloneRepository {
+    runCommandOnBuildHost \
+        "${GIT_EXE} clone --depth 1 ${GIT_REPO} ${WIN_PROJECT_DIR}" || \
+        return 1
+}
+
+function buildVM {
+    log "Build virtual machine"
+
+    runCommandOnBuildHost \
+        "cd ${WIN_PROJECT_DIR} && hyper-v.bat" || \
+        return 1
+}
+
+function fetchVM {
+    log "Fetch virtual machine"
+    mkdir -p builds/ || return 1
+    scp -q -r \
+        "${WIN_HOSTNAME}:${WIN_PROJECT_DIR}\\\\builds\\${VM_NAME}-${FLAVOR}\\" \
+        builds/ || \
+        return 1
+}
+
+function packDist {
+    log "Pack distribution package"
+    make dist-${FLAVOR} || return 1
+}
+
+function uploadDist {
+    log "Upload distribution package"
+    scp -q \
+        "builds/${VM_NAME}-${FLAVOR}.zip" \
+        "${BUILD_HOST}:${PROJECT_DIR}/dist/" || \
+        return 1
+}
+
+function createChecksums {
+    log "Create checksums"
+    runCommandOnHost \
+        "cd ${DOWNLOAD_DIR}/ && rm -f ./CHECKSUMS && sha256sum * > ./CHECKSUMS" || \
+        return 1
+}
+
+function publish {
+    runCommandOnBuildHost "mkdir -p ${DOWNLOAD_DIR}/" || return 1
+    runCommandOnBuildHost "cp ${PROJECT_DIR}/dist/* ${DOWNLOAD_DIR}/" || return 1
+}
+
+function runCommandOnBuildHost {
+    local command="$1"
+
+    runCommandOnHost \
+        "$WIN_HOSTNAME" \
+        "$command" || \
+        return 1
+}
+
+function runCommandOnHost {
+    local hostname="$1"
+    local command="$2"
+
+    log "Run remotely on ${hostname}:"
+    log "> $command"
+
+    test "$DRY_RUN" -gt 0 && return 0
+
+    # shellcheck disable=SC2029
+    if ssh "$hostname" "$command"; then
+        return 0
+    else
+        log "Command failed with exit code $?"
+        return 1
+    fi
+}
+
+function setUp {
+    test "$(whoami)" != root || \
+        log "Please do not run this script as root user"
+}
+
+function tearDown {
+    log "Done. Have fun :-)"
+    exit 0
+}
+
+function abort {
+    log "$1"
+    exit 1
+}
+
+function log {
+    echo -e "$1"
+}
+
+if [[ "${BASH_SOURCE[0]}" = "$0" ]]; then
+    setUp && execute && tearDown
+fi
