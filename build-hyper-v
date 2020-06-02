@@ -156,8 +156,19 @@ function packDist {
 function uploadDist {
     log "Upload distribution package"
     scp -q \
-        "builds/${VM_NAME}-${FLAVOR}.zip" \
+        "dist/${VM_NAME}-${FLAVOR}.zip" \
         "${BUILD_HOST}:${PROJECT_DIR}/dist/" || \
+        return 1
+}
+
+function publish {
+    runCommandOnHost \
+        "$BUILD_HOST" \
+        "mkdir -p ${DOWNLOAD_DIR}/" || \
+        return 1
+    runCommandOnHost \
+        "$BUILD_HOST" \
+        "cp ${PROJECT_DIR}/dist/* ${DOWNLOAD_DIR}/" || \
         return 1
 }
 
@@ -166,11 +177,6 @@ function createChecksums {
     runCommandOnHost \
         "cd ${DOWNLOAD_DIR}/ && rm -f ./CHECKSUMS && sha256sum * > ./CHECKSUMS" || \
         return 1
-}
-
-function publish {
-    runCommandOnBuildHost "mkdir -p ${DOWNLOAD_DIR}/" || return 1
-    runCommandOnBuildHost "cp ${PROJECT_DIR}/dist/* ${DOWNLOAD_DIR}/" || return 1
 }
 
 function runCommandOnBuildHost {
