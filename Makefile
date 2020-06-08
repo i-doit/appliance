@@ -158,6 +158,7 @@ lint-shell :
 	shellcheck bin/appliance-update
 	shellcheck etc/network/if-up.d/create-issue-files
 	shellcheck build
+	shellcheck build-hyper-v
 	shellcheck deploy
 	shellcheck update
 
