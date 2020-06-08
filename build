@@ -109,7 +109,7 @@ function packDist {
 function createChecksums {
     log "Create checksums"
     runCommandOnBuildHost \
-        "cd ${DOWNLOAD_DIR}/ && rm -f ./CHECKSUMS && sha256sum * > ./CHECKSUMS" || \
+        "cd ${DOWNLOAD_DIR}/ && sha256sum * > ./CHECKSUMS" || \
         return 1
 }
 

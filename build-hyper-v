@@ -176,7 +176,7 @@ function publish {
 function createChecksums {
     log "Create checksums"
     runCommandOnHost \
-        "cd ${DOWNLOAD_DIR}/ && rm -f ./CHECKSUMS && sha256sum * > ./CHECKSUMS" || \
+        "cd ${DOWNLOAD_DIR}/ && sha256sum * > ./CHECKSUMS" || \
         return 1
 }
 
